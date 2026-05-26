@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>River Timeline Sidecar</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --paper: #ffffff;
+      --ink: #1f2a2e;
+      --muted: #646b6d;
+      --river: #2f7f9f;
+      --river-light: #a9d6e3;
+      --accent: #a85f3f;
+      --left-width: 36vw;
+      --line-width: 76px;
+      --content-padding: clamp(1.5rem, 3vw, 3rem);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+
+    img,
+    video {
+      max-width: 100%;
+      display: block;
+    }
+
+    .sidecar {
+      min-height: 100vh;
+    }
+
+    .timeline-column {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--left-width);
+      height: 100vh;
+      overflow: hidden;
+      background: var(--paper);
+      border-right: 1px solid rgba(31, 42, 46, 0.12);
+      z-index: 20;
+    }
+
+    .timeline-scroll {
+      position: relative;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 12vh var(--content-padding) 18vh calc(var(--line-width) + var(--content-padding));
+      scrollbar-width: thin;
+    }
+
+    .river-svg {
+      position: absolute;
+      top: 0;
+      left: calc(var(--content-padding) * 0.55);
+      width: var(--line-width);
+      min-height: 100%;
+      height: auto;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .river-base {
+      fill: none;
+      stroke: var(--river-light);
+      stroke-width: 22;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.48;
+    }
+
+    .river-progress {
+      fill: none;
+      stroke: var(--river);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      filter: drop-shadow(0 2px 2px rgba(20, 60, 80, 0.2));
+    }
+
+    .timeline-item {
+      position: relative;
+      z-index: 1;
+      min-height: 72vh;
+      display: flex;
+      align-items: center;
+      padding: 2rem 0;
+    }
+
+    .timeline-text {
+      position: relative;
+      max-width: 30rem;
+      transition: opacity 240ms ease, transform 240ms ease;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 999px;
+      background: var(--paper);
+      border: 4px solid var(--river);
+      box-shadow: 0 0 0 6px rgba(47, 127, 159, 0.16);
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .timeline-item:not(.is-active) .timeline-text {
+      opacity: 0.48;
+    }
+
+    .timeline-item.is-active .timeline-text {
+      opacity: 1;
+      transform: translateX(0.3rem);
+    }
+
+    .date {
+      margin: 0 0 0.5rem;
+      color: var(--accent);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .timeline-text h2 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.6rem, 2.4vw, 2.4rem);
+      line-height: 1.05;
+      font-weight: 500;
+    }
+
+    .timeline-text p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .media-column {
+      min-height: 100vh;
+      margin-left: var(--left-width);
+      width: calc(100vw - var(--left-width));
+      background: #111;
+    }
+
+    .media-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: calc(100vw - var(--left-width));
+      height: 100vh;
+      opacity: 0;
+      transform: scale(1.015);
+      transition: opacity 420ms ease, transform 700ms ease;
+      pointer-events: none;
+      z-index: 1;
+      background: #111;
+      margin:0;
+    }
+
+    .media-panel.is-active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+      z-index: 2;
+    }
+
+    .media-panel img,
+    .media-panel video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .media-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.62), transparent 48%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .caption {
+      position: absolute;
+      left: clamp(1.5rem, 4vw, 4rem);
+      right: clamp(1.5rem, 4vw, 4rem);
+      bottom: clamp(1.5rem, 4vw, 4rem);
+      z-index: 2;
+      max-width: 46rem;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    .caption-title {
+      margin: 0 0 0.35rem;
+      font-size: clamp(1.2rem, 2vw, 2rem);
+      font-weight: 700;
+    }
+
+    .caption-text {
+      margin: 0;
+      font-size: clamp(0.95rem, 1.3vw, 1.15rem);
+      opacity: 0.9;
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --left-width: 100vw;
+        --line-width: 56px;
+      }
+
+      .sidecar {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .timeline-column {
+        position: relative;
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        border-right: 0;
+        border-bottom: 1px solid rgba(31, 42, 46, 0.12);
+      }
+
+      .timeline-scroll {
+        height: auto;
+        overflow: visible;
+        padding-top: 8vh;
+      }
+
+      .media-column {
+        display: none;
+      }
+
+      .media-panel {
+        display: none;
+      }
+    }
+    .article-video {
+      margin-top: 1rem;
+      aspect-ratio: 16 / 9;
+      width: 100%;
+    }
+
+    .article-video iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    .media-panel iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    /* Make only the first timeline article behave like an intro/title block */
+.timeline-item:first-of-type {
+  align-items: flex-start;
+  min-height: 100vh;
+  padding-top: 1vh;
+}
+
+/* Keep the intro text from vertically centering like the later timeline items */
+.timeline-item:first-of-type .timeline-text {
+  transform: none;
+}
+
+/* Optional: make the intro title feel more like a story title */
+.timeline-item:first-of-type h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2.6rem, 4.5vw, 5rem);
+  line-height: 0.95;
+  font-weight: 500;
+}
+
+/* Optional: hide the river dot on the intro if it feels too timeline-like */
+.timeline-item:first-of-type .timeline-dot {
+  display: none;
+}
+  </style>
+</head>
+<body>
+  <main class="sidecar" aria-label="River timeline sidecar">
+    <section class="timeline-column" aria-label="Timeline">
+      <div class="timeline-scroll" id="timelineScroll">
+        <svg class="river-svg" id="riverSvg" aria-hidden="true">
+          <path class="river-base" id="riverBase"></path>
+          <path class="river-progress" id="riverProgress"></path>
+        </svg>
+
+
+        <article class="timeline-item is-active" data-media="media-1">
+          <span class="timeline-dot" aria-hidden="true"></span>
+          <div class="timeline-text">
+            <h1>History of Muscatine</h1>
+            <p>
+              Freshwater mussel shells from the Mississippi River helped turn Muscatine into a center of pearl button production. The river was not just scenery. It was material, labor, transport, and identity.
+            </p>
+          </div>
+        </article>
+
+        <article class="timeline-item" data-media="media-2">
+          <span class="timeline-dot" aria-hidden="true"></span>
+          <div class="timeline-text">
+            <p class="date">1890s</p>
+            <h2>Factories line the riverfront</h2>
+            <p>
+              Button factories expanded along the city's industrial edge. This is where you might describe a specific factory, founder, workforce, or site polygon from your map.
+            </p>
+            <div class="article-video">
+               <iframe src="https://www.youtube.com/embed/12I4zIUhqBM?si=rf9F_zjVf3eQiCib" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+          </div>
+        </article>
+
+        <article class="timeline-item" data-media="media-3">
+          <span class="timeline-dot" aria-hidden="true"></span>
+          <div class="timeline-text">
+            <p class="date">1910s</p>
+            <h2>The button boom peaks</h2>
+            <p>
+              At its height, the button industry connected river ecology, immigrant labor, manufacturing, fashion, and national markets.
+            </p>
+          </div>
+        </article>
+
+        <article class="timeline-item" data-media="media-4">
+          <span class="timeline-dot" aria-hidden="true"></span>
+          <div class="timeline-text">
+            <p class="date">1930s–1950s</p>
+            <h2>Materials and markets shift</h2>
+            <p>
+              Plastics and changing markets disrupted the pearl button trade. This is a good place to move from local craft and labor to a broader industrial pattern.
+            </p>
+          </div>
+        </article>
+
+        <article class="timeline-item" data-media="media-5">
+          <span class="timeline-dot" aria-hidden="true"></span>
+          <div class="timeline-text">
+            <p class="date">Today</p>
+            <h2>What remains in the landscape?</h2>
+            <p>
+              The final entry can connect past and present: remaining buildings, altered riverfronts, museum objects, oral histories, or modern industries that echo earlier patterns of making.
+            </p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="media-column" aria-label="Timeline media">
+      <figure class="media-panel is-active" id="media-1">
+        <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80" alt="River landscape placeholder" />
+        <figcaption class="caption">
+          <p class="caption-title">River as raw material</p>
+          <p class="caption-text">Use an archival image, map, or close-up of river mussel shells here.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="media-panel" id="media-2">
+        <img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1800&q=80" alt="Industrial building placeholder" />
+        <figcaption class="caption">
+          <p class="caption-title">Factory district</p>
+          <p class="caption-text">This could show a factory building, historic Sanborn map, or polygon detail.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="media-panel" id="media-3">
+        <iframe src="https://www.youtube.com/embed/12I4zIUhqBM?si=rf9F_zjVf3eQiCib" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <figcaption class="caption">
+          <p class="caption-title">Production and labor</p>
+          <p class="caption-text">Use a photo sequence or short video loop to show process and scale.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="media-panel" id="media-4">
+        <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1800&q=80" alt="Old machinery placeholder" />
+        <figcaption class="caption">
+          <p class="caption-title">Industrial transition</p>
+          <p class="caption-text">Pair this section with materials, market shifts, or decline of the shell-button industry.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="media-panel" id="media-5">
+        <img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1800&q=80" alt="Present-day interior placeholder" />
+        <figcaption class="caption">
+          <p class="caption-title">Memory in the present</p>
+          <p class="caption-text">Show present-day sites, museum objects, descendants, or remaining architecture.</p>
+        </figcaption>
+      </figure>
+    </section>
+  </main>
+
+  <script>
+    const timelineScroll = document.querySelector("#timelineScroll");
+    const timelineItems = Array.from(document.querySelectorAll(".timeline-item"));
+    const mediaPanels = Array.from(document.querySelectorAll(".media-panel"));
+    const riverSvg = document.querySelector("#riverSvg");
+    const riverBase = document.querySelector("#riverBase");
+    const riverProgress = document.querySelector("#riverProgress");
+
+    const riverSettings = {
+      amplitude: 12,
+      waveLength: 360,
+      pointGap: 14
+    };
+
+    function riverXAtY(y, svgWidth) {
+      const centerX = svgWidth / 2;
+      return centerX + Math.sin((y / riverSettings.waveLength) * Math.PI * 2) * riverSettings.amplitude;
+    }
+
+    function setActiveItem(activeItem) {
+      const mediaId = activeItem.dataset.media;
+
+      timelineItems.forEach((item) => {
+        item.classList.toggle("is-active", item === activeItem);
+      });
+
+      mediaPanels.forEach((panel) => {
+        const isActive = panel.id === mediaId;
+        panel.classList.toggle("is-active", isActive);
+
+        const video = panel.querySelector("video");
+        if (video) {
+          if (isActive) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      });
+    }
+
+    function getObserverRoot() {
+      return window.matchMedia("(max-width: 900px)").matches ? null : timelineScroll;
+    }
+
+    let itemObserver;
+
+    function createItemObserver() {
+      if (itemObserver) {
+        itemObserver.disconnect();
+      }
+
+      itemObserver = new IntersectionObserver(
+        (entries) => {
+          const visibleEntries = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+          if (visibleEntries.length > 0) {
+            setActiveItem(visibleEntries[0].target);
+          }
+        },
+        {
+          root: getObserverRoot(),
+          threshold: [0.35, 0.5, 0.65],
+          rootMargin: "-20% 0px -20% 0px"
+        }
+      );
+
+      timelineItems.forEach((item) => itemObserver.observe(item));
+    }
+
+    createItemObserver();
+
+    function buildRiverPath() {
+      const scrollHeight = timelineScroll.scrollHeight;
+      const svgWidth = riverSvg.clientWidth;
+
+      /*
+        The SVG sits inside a fixed-height scrolling panel.
+        The attribute height alone is not enough because CSS can still constrain it.
+        Setting the inline style height forces the river to cover the full scrollable timeline.
+      */
+      riverSvg.setAttribute("viewBox", `0 0 ${svgWidth} ${scrollHeight}`);
+      riverSvg.setAttribute("height", scrollHeight);
+      riverSvg.style.height = `${scrollHeight}px`;
+
+      const points = [];
+
+      for (let y = 0; y <= scrollHeight; y += riverSettings.pointGap) {
+        points.push([riverXAtY(y, svgWidth), y]);
+      }
+
+      if (points[points.length - 1][1] < scrollHeight) {
+        points.push([riverXAtY(scrollHeight, svgWidth), scrollHeight]);
+      }
+
+      let d = `M ${points[0][0]} ${points[0][1]}`;
+
+      for (let i = 1; i < points.length - 1; i++) {
+        const [xCurrent, yCurrent] = points[i];
+        const [xNext, yNext] = points[i + 1];
+        const midX = (xCurrent + xNext) / 2;
+        const midY = (yCurrent + yNext) / 2;
+
+        d += ` Q ${xCurrent} ${yCurrent}, ${midX} ${midY}`;
+      }
+
+      const [xLast, yLast] = points[points.length - 1];
+      d += ` T ${xLast} ${yLast}`;
+
+      riverBase.setAttribute("d", d);
+      riverProgress.setAttribute("d", d);
+
+      const pathLength = riverProgress.getTotalLength();
+      riverProgress.style.strokeDasharray = pathLength;
+      riverProgress.style.strokeDashoffset = pathLength;
+
+      positionDotsOnRiver();
+    }
+
+    function positionDotsOnRiver() {
+      const svgWidth = riverSvg.clientWidth;
+      const timelineRect = timelineScroll.getBoundingClientRect();
+      const riverRect = riverSvg.getBoundingClientRect();
+      const riverLeftWithinScroll = riverRect.left - timelineRect.left + timelineScroll.scrollLeft;
+
+      timelineItems.forEach((item) => {
+        const dot = item.querySelector(".timeline-dot");
+        const itemCenterY = item.offsetTop + item.offsetHeight / 2;
+        const dotXOnRiver = riverLeftWithinScroll + riverXAtY(itemCenterY, svgWidth);
+        const dotXWithinItem = dotXOnRiver - item.offsetLeft;
+
+        dot.style.left = `${dotXWithinItem}px`;
+      });
+    }
+
+    function updateRiverProgress() {
+      const pathLength = riverProgress.getTotalLength();
+      const isMobile = window.matchMedia("(max-width: 900px)").matches;
+      let progress = 0;
+
+      if (isMobile) {
+        /*
+          On mobile, .timeline-scroll is no longer the scrolling element.
+          The browser window scrolls, so progress must be calculated from
+          the timeline's position within the page.
+        */
+        const rect = timelineScroll.getBoundingClientRect();
+        const scrollableDistance = rect.height - window.innerHeight;
+        const scrolledThroughTimeline = Math.min(
+          Math.max(-rect.top, 0),
+          Math.max(scrollableDistance, 1)
+        );
+
+        progress = scrolledThroughTimeline / Math.max(scrollableDistance, 1);
+      } else {
+        const maxScroll = timelineScroll.scrollHeight - timelineScroll.clientHeight;
+        progress = maxScroll > 0 ? timelineScroll.scrollTop / maxScroll : 0;
+      }
+
+      riverProgress.style.strokeDashoffset = pathLength * (1 - progress);
+    }
+
+    function refreshRiver() {
+      buildRiverPath();
+      updateRiverProgress();
+    }
+    function launchFullscreen(element) {
+      if (!element) return;
+
+      const requestFullscreen =
+        element.requestFullscreen ||
+        element.webkitRequestFullscreen ||
+        element.msRequestFullscreen;
+
+      if (requestFullscreen) {
+        requestFullscreen.call(element).catch?.(() => {
+          // Browsers may block fullscreen unless the action came from a direct user gesture.
+        });
+      }
+    }
+
+    function setupVideoFullscreen() {
+      /*
+        Native HTML videos can usually request fullscreen when the user presses play.
+        This may be blocked if the video is autoplayed by script instead of played by the user.
+      */
+      document.querySelectorAll("video").forEach((video) => {
+        video.addEventListener("play", () => {
+          launchFullscreen(video);
+        });
+      });
+
+      /*
+        YouTube iframes do not expose a simple native "play" event.
+        The most reliable lightweight option is to fullscreen the iframe when the user clicks it.
+        Make sure the iframe includes allowfullscreen and allow="fullscreen".
+      */
+      document.querySelectorAll("iframe[src*='youtube.com'], iframe[src*='youtu.be']").forEach((iframe) => {
+        iframe.setAttribute("allowfullscreen", "");
+
+        const existingAllow = iframe.getAttribute("allow") || "";
+        if (!existingAllow.includes("fullscreen")) {
+          iframe.setAttribute("allow", `${existingAllow}; fullscreen`.trim());
+        }
+
+        iframe.addEventListener("click", () => {
+          launchFullscreen(iframe);
+        });
+      });
+    }
+
+    window.addEventListener("load", () => {
+      setupVideoFullscreen();
+      refreshRiver();
+    });
+    window.addEventListener("resize", () => {
+      createItemObserver();
+      refreshRiver();
+    });
+
+    window.addEventListener("scroll", updateRiverProgress, { passive: true });
+    timelineScroll.addEventListener("scroll", updateRiverProgress, { passive: true });
+    timelineScroll.addEventListener("scroll", positionDotsOnRiver, { passive: true });
+
+    refreshRiver();
+  </script>
+</body>
+</html>

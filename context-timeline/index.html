@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>River Timeline Sidecar</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --paper: #fffaf1;
+      --ink: #1f2a2e;
+      --muted: #6b6f6f;
+      --river: #2f7f9f;
+      --river-light: #8fc7d8;
+      --accent: #a85f3f;
+      --line-width: 74px;
+      --max-width: 100%;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+
+    img,
+    video {
+      max-width: 100%;
+      display: block;
+    }
+
+    .site-header {
+      min-height: 70vh;
+      display: grid;
+      place-items: center;
+      padding: 6rem 1.5rem;
+      background:
+        linear-gradient(rgba(31, 42, 46, 0.45), rgba(31, 42, 46, 0.7)),
+        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80") center/cover;
+      color: white;
+      text-align: center;
+    }
+
+    .site-header__inner {
+      max-width: 780px;
+    }
+
+    .eyebrow {
+      margin: 0 0 1rem;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.8rem, 8vw, 7rem);
+      line-height: 0.9;
+      font-weight: 500;
+    }
+
+    .dek {
+      max-width: 620px;
+      margin: 1.5rem auto 0;
+      font-size: clamp(1.1rem, 2vw, 1.45rem);
+    }
+
+    .intro {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 5rem 1.5rem 3rem;
+      font-size: 1.25rem;
+    }
+
+    .sidecar {
+      width: min(100%, var(--max-width));
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(360px, 36%) minmax(420px, 54%);
+      gap: clamp(2rem, 5vw, 5rem);
+      padding: 0 0 6rem;
+      align-items: start;
+    }
+
+    .timeline-column {
+      position: relative;
+      padding: 1rem;
+      padding-left: calc(var(--line-width) + 1.25rem);
+      background-color: #fff;
+    }
+
+    /*
+      The river is one SVG that runs the full height of the timeline.
+      JavaScript sets its height and redraws the wavy path whenever the page loads or resizes.
+    */
+    .river-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--line-width);
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .river-base {
+      fill: none;
+      stroke: var(--river-light);
+      stroke-width: 22;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.45;
+    }
+
+    .river-progress {
+      fill: none;
+      stroke: var(--river);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      filter: drop-shadow(0 2px 2px rgba(20, 60, 80, 0.22));
+    }
+
+    .timeline-item {
+      position: relative;
+      z-index: 1;
+      min-height: 78vh;
+      padding: 4rem 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .timeline-card {
+      position: relative;
+      padding: 1.4rem 1.4rem 1.5rem;
+      background: rgba(255, 250, 241, 0.94);
+      /* border: 1px solid rgba(31, 42, 46, 0.12); */
+      border-radius: 1.2rem;
+      /* box-shadow: 0 18px 45px rgba(31, 42, 46, 0.08); */
+      transition: transform 240ms ease, border-color 240ms ease, background 240ms ease;
+    }
+
+    .timeline-card::before {
+      content: "";
+      position: absolute;
+      left: calc(-1.25rem - var(--line-width) / 2 - 0.45rem);
+      top: 50%;
+      width: 0.9rem;
+      height: 0.9rem;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      background: var(--paper);
+      border: 4px solid var(--river);
+      box-shadow: 0 0 0 6px rgba(47, 127, 159, 0.16);
+    }
+
+    .timeline-item.is-active .timeline-card {
+      transform: translateX(0.35rem);
+      border-color: rgba(168, 95, 63, 0.38);
+      background: white;
+    }
+
+    .date {
+      margin: 0 0 0.4rem;
+      color: var(--accent);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .timeline-card h2 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.65rem, 3vw, 2.6rem);
+      line-height: 1.05;
+      font-weight: 500;
+    }
+
+    .timeline-card p {
+      margin: 0 0 1rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .jump-link {
+      display: inline-block;
+      margin-top: 0.4rem;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--river);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .media-column {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 2rem 0;
+    }
+
+    .media-stage {
+      position: relative;
+      width: 100%;
+      height: min(78vh, 720px);
+      border-radius: 1.5rem;
+      overflow: hidden;
+      background: #111;
+      box-shadow: 0 24px 70px rgba(31, 42, 46, 0.28);
+      isolation: isolate;
+    }
+
+    .media-panel {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: scale(1.025);
+      transition: opacity 420ms ease, transform 700ms ease;
+      pointer-events: none;
+    }
+
+    .media-panel.is-active {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+      z-index: 2;
+    }
+
+    .media-panel img,
+    .media-panel video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .media-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent 50%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .caption {
+      position: absolute;
+      left: 1.25rem;
+      right: 1.25rem;
+      bottom: 1.25rem;
+      z-index: 2;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    .caption-title {
+      margin: 0 0 0.25rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .caption-text {
+      margin: 0;
+      max-width: 38rem;
+      font-size: 0.9rem;
+      opacity: 0.88;
+    }
+
+    .site-footer {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 6rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      .sidecar {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .media-column {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        height: 48vh;
+        padding: 0.75rem 0;
+        background: var(--bg);
+      }
+
+      .media-stage {
+        height: 43vh;
+      }
+
+      .timeline-column {
+        padding-left: calc(var(--line-width) + 0.7rem);
+      }
+
+      .timeline-item {
+        min-height: 70vh;
+        padding: 2.5rem 0;
+      }
+    }
+
+    @media (max-width: 560px) {
+      :root {
+        --line-width: 48px;
+      }
+
+      .site-header {
+        min-height: 60vh;
+      }
+
+      .intro {
+        padding-top: 3rem;
+      }
+
+      .sidecar {
+        padding-inline: 1rem;
+      }
+
+      .timeline-card {
+        padding: 1.1rem;
+      }
+
+      .timeline-card::before {
+        left: calc(-0.7rem - var(--line-width) / 2 - 0.35rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <p class="eyebrow">Where the River Bends</p>
+      <h1>A River Timeline</h1>
+      <p class="dek">A sidecar-style page where the left column scrolls through a timeline and the right column changes media as each moment comes into focus.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <p>
+        Replace these placeholder entries with the actual Muscatine timeline. Each timeline item is connected by a wavy SVG line that behaves like a river. As each item becomes active, the matching image or video appears in the sticky media panel.
+      </p>
+    </section>
+
+    <section class="sidecar" aria-label="River timeline sidecar">
+      <div class="timeline-column" id="timelineColumn">
+        <svg class="river-svg" id="riverSvg" aria-hidden="true">
+          <path class="river-base" id="riverBase"></path>
+          <path class="river-progress" id="riverProgress"></path>
+        </svg>
+
+        <article class="timeline-item is-active" data-media="media-1">
+          <div class="timeline-card">
+            <p class="date">1850s</p>
+            <h2>Shells become industry</h2>
+            <p>
+              Freshwater mussel shells from the Mississippi River helped turn Muscatine into a center of pearl button production. The river was not just scenery. It was material, labor, transport, and identity.
+            </p>
+            <a class="jump-link" href="#media-1">View archival image</a>
+          </div>
+        </article>
+
+        <article class="timeline-item" data-media="media-2">
+          <div class="timeline-card">
+            <p class="date">1890s</p>
+            <h2>Factories line the riverfront</h2>
+            <p>
+              Button factories expanded along the city’s industrial edge. This is where you might describe a specific factory, founder, workforce, or site polygon from your map.
+            </p>
+            <a class="jump-link" href="#media-2">View factory image</a>
+          </div>
+        </article>
+
+        <article class="timeline-item" data-media="media-3">
+          <div class="timeline-card">
+            <p class="date">1910s</p>
+            <h2>The button boom peaks</h2>
+            <p>
+              At its height, the button industry connected river ecology, immigrant labor, manufacturing, fashion, and national markets. This entry could pair with a slideshow, map detail, or short video loop.
+            </p>
+            <a class="jump-link" href="#media-3">View production image</a>
+          </div>
+        </article>
+
+        <article class="timeline-item" data-media="media-4">
+          <div class="timeline-card">
+            <p class="date">1930s–1950s</p>
+            <h2>Materials and markets shift</h2>
+            <p>
+              Plastics and changing markets disrupted the pearl button trade. This is a good place to move from local craft and labor to a broader industrial pattern.
+            </p>
+            <a class="jump-link" href="#media-4">View transition image</a>
+          </div>
+        </article>
+
+        <article class="timeline-item" data-media="media-5">
+          <div class="timeline-card">
+            <p class="date">Today</p>
+            <h2>What remains in the landscape?</h2>
+            <p>
+              The final entry can connect past and present: remaining buildings, altered riverfronts, museum objects, oral histories, or modern industries that echo earlier patterns of making.
+            </p>
+            <a class="jump-link" href="#media-5">View present-day image</a>
+          </div>
+        </article>
+      </div>
+
+      <aside class="media-column" aria-label="Timeline media">
+        <div class="media-stage">
+          <figure class="media-panel is-active" id="media-1">
+            <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80" alt="River landscape placeholder" />
+            <figcaption class="caption">
+              <p class="caption-title">River as raw material</p>
+              <p class="caption-text">Use an archival image, map, or close-up of river mussel shells here.</p>
+            </figcaption>
+          </figure>
+
+          <figure class="media-panel" id="media-2">
+            <img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1400&q=80" alt="Industrial building placeholder" />
+            <figcaption class="caption">
+              <p class="caption-title">Factory district</p>
+              <p class="caption-text">This could show a factory building, historic Sanborn map, or polygon detail.</p>
+            </figcaption>
+          </figure>
+
+          <figure class="media-panel" id="media-3">
+            <img src="https://images.unsplash.com/photo-1516937941344-00b4e0337589?auto=format&fit=crop&w=1400&q=80" alt="Manufacturing placeholder" />
+            <figcaption class="caption">
+              <p class="caption-title">Production and labor</p>
+              <p class="caption-text">Use a photo sequence or short video loop to show process and scale.</p>
+            </figcaption>
+          </figure>
+
+          <figure class="media-panel" id="media-4">
+            <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1400&q=80" alt="Old machinery placeholder" />
+            <figcaption class="caption">
+              <p class="caption-title">Industrial transition</p>
+              <p class="caption-text">Pair this section with materials, market shifts, or decline of the shell-button industry.</p>
+            </figcaption>
+          </figure>
+
+          <figure class="media-panel" id="media-5">
+            <img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1400&q=80" alt="Present-day interior placeholder" />
+            <figcaption class="caption">
+              <p class="caption-title">Memory in the present</p>
+              <p class="caption-text">Show present-day sites, museum objects, descendants, or remaining architecture.</p>
+            </figcaption>
+          </figure>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+
+  <script>
+    const timelineColumn = document.querySelector("#timelineColumn");
+    const timelineItems = Array.from(document.querySelectorAll(".timeline-item"));
+    const mediaPanels = Array.from(document.querySelectorAll(".media-panel"));
+    const riverSvg = document.querySelector("#riverSvg");
+    const riverBase = document.querySelector("#riverBase");
+    const riverProgress = document.querySelector("#riverProgress");
+
+    function setActiveItem(activeItem) {
+      const mediaId = activeItem.dataset.media;
+
+      timelineItems.forEach((item) => {
+        item.classList.toggle("is-active", item === activeItem);
+      });
+
+      mediaPanels.forEach((panel) => {
+        const isActive = panel.id === mediaId;
+        panel.classList.toggle("is-active", isActive);
+
+        const video = panel.querySelector("video");
+        if (video) {
+          if (isActive) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        }
+      });
+    }
+
+    const itemObserver = new IntersectionObserver(
+      (entries) => {
+        const visibleEntries = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        if (visibleEntries.length > 0) {
+          setActiveItem(visibleEntries[0].target);
+        }
+      },
+      {
+        root: null,
+        threshold: [0.35, 0.5, 0.65],
+        rootMargin: "-20% 0px -20% 0px"
+      }
+    );
+
+    timelineItems.forEach((item) => itemObserver.observe(item));
+
+    function buildRiverPath() {
+      const columnHeight = timelineColumn.offsetHeight;
+      const svgWidth = riverSvg.clientWidth;
+      const centerX = svgWidth / 2;
+      const amplitude = Math.min(15, svgWidth * 0.22);
+      const waveLength = 260;
+      const pointGap = 18;
+
+      riverSvg.setAttribute("viewBox", `0 0 ${svgWidth} ${columnHeight}`);
+      riverSvg.setAttribute("height", columnHeight);
+
+      /*
+        This builds the river as one continuous sine-wave path.
+        The earlier version used repeated cubic curves, which could create subtle corners
+        where one curve segment handed off to the next.
+      */
+      const points = [];
+
+      for (let y = 0; y <= columnHeight; y += pointGap) {
+        const x = centerX + Math.sin((y / waveLength) * Math.PI * 2) * amplitude;
+        points.push([x, y]);
+      }
+
+      if (points[points.length - 1][1] < columnHeight) {
+        const y = columnHeight;
+        const x = centerX + Math.sin((y / waveLength) * Math.PI * 2) * amplitude;
+        points.push([x, y]);
+      }
+
+      let d = `M ${points[0][0]} ${points[0][1]}`;
+
+      for (let i = 1; i < points.length - 1; i++) {
+        const [xCurrent, yCurrent] = points[i];
+        const [xNext, yNext] = points[i + 1];
+        const midX = (xCurrent + xNext) / 2;
+        const midY = (yCurrent + yNext) / 2;
+
+        d += ` Q ${xCurrent} ${yCurrent}, ${midX} ${midY}`;
+      }
+
+      const [xLast, yLast] = points[points.length - 1];
+      d += ` T ${xLast} ${yLast}`;
+
+      riverBase.setAttribute("d", d);
+      riverProgress.setAttribute("d", d);
+
+      const pathLength = riverProgress.getTotalLength();
+      riverProgress.style.strokeDasharray = pathLength;
+      riverProgress.style.strokeDashoffset = pathLength;
+    }
+
+    function updateRiverProgress() {
+      const columnRect = timelineColumn.getBoundingClientRect();
+      const totalScrollable = columnRect.height - window.innerHeight;
+      const scrolledThroughColumn = Math.min(
+        Math.max(-columnRect.top, 0),
+        Math.max(totalScrollable, 1)
+      );
+      const progress = scrolledThroughColumn / Math.max(totalScrollable, 1);
+      const pathLength = riverProgress.getTotalLength();
+
+      riverProgress.style.strokeDashoffset = pathLength * (1 - progress);
+    }
+
+    function refreshRiver() {
+      buildRiverPath();
+      updateRiverProgress();
+    }
+
+    window.addEventListener("load", refreshRiver);
+    window.addEventListener("resize", refreshRiver);
+    window.addEventListener("scroll", updateRiverProgress, { passive: true });
+
+    refreshRiver();
+  </script>
+</body>
+</html>
