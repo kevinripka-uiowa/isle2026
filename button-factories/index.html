@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Pearl Button Factories by Decade</title>
+
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.24.0/mapbox-gl.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #fffef3;
+      --panel: rgba(255, 254, 243, 0.94);
+      --text: #01205C;
+      --muted: #666;
+      --border: #d8d1b8;
+
+      --cutting: #7a3b2e;
+      --finishing: #245c5a;
+      --mixed: #222;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .map-wrap {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        }
+
+.panel {
+  position: relative;
+  width: calc(100% - 40px);
+  padding: 20px;
+}
+
+#map {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+    .panel h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.2rem;
+      line-height: 1.2;
+    }
+
+    .panel p {
+      margin: 0 0 0.75rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+
+    .status {
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .decade-label {
+      font-size: 2rem;
+      line-height: 1;
+      font-weight: 750;
+      margin-bottom: 0.75rem;
+    }
+
+    .timeline-controls {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .step-buttons {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .playback-button {
+      width: 2.25rem;
+      min-width: 2.25rem;
+      height: 2.25rem;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 0.45rem 0.7rem;
+      font: inherit;
+      cursor: pointer;
+      border-radius: 999px;
+    }
+
+    button:hover {
+      background: #f4eedc;
+    }
+
+    button.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+
+    .legend {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .legend-dot {
+      width: 0.85rem;
+      height: 0.85rem;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .legend-dot.cutting {
+      background: var(--cutting);
+    }
+
+    .legend-dot.finishing {
+      background: var(--finishing);
+    }
+
+    .legend-dot.mixed {
+      background: var(--mixed);
+    }
+
+   .factory-marker {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 9px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.factory-marker.single {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+}
+
+.factory-marker:hover {
+  transform: scale(1.2);
+}
+
+    .factory-marker:hover {
+      transform: scale(1.14);
+    }
+
+    .factory-marker.cutting-shop {
+      background: var(--cutting);
+    }
+
+    .factory-marker.finishing-plant {
+      background: var(--finishing);
+    }
+
+    .factory-marker.mixed {
+      background: var(--mixed);
+    }
+
+ 
+
+    .mapboxgl-popup-content {
+      padding: 0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .popup {
+      max-width: 300px;
+      padding: 0.85rem;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .popup h2 {
+      font-size: 1rem;
+      line-height: 1.2;
+      margin: 0 0 0.35rem;
+    }
+
+    .popup .address {
+      margin: 0 0 0.6rem;
+      color: #555;
+      font-size: 0.9rem;
+      line-height: 1.3;
+    }
+
+    .popup ul {
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    .popup li {
+      margin-bottom: 0.35rem;
+    }
+
+    .popup .type {
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      .panel {
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+      }
+
+      .decade-label {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="map-wrap">
+    
+
+    <section class="panel" aria-label="Map controls">
+      <h1>Pearl button factories by decade</h1>
+
+      <p>
+        Each button shows sites active during that decade. Click a marker to see
+        the address and all active companies at that location.
+      </p>
+
+      <!-- <div id="status" class="status">Loading data…</div> -->
+
+      <!-- <div id="decadeLabel" class="decade-label">Loading…</div> -->
+
+      <div class="timeline-controls" aria-label="Decade animation controls">
+        <button id="playBtn" class="playback-button" type="button" aria-label="Stop autoplay" title="Stop autoplay">■</button>
+        <div id="stepButtons" class="step-buttons" aria-label="Decade selector"></div>
+      </div>
+
+      <div class="legend" aria-label="Legend">
+        <span class="legend-item">
+          <span class="legend-dot cutting"></span>
+          Cutting shop
+        </span>
+
+        <span class="legend-item">
+          <span class="legend-dot finishing"></span>
+          Finishing plant
+        </span>
+
+        <span class="legend-item">
+          <span class="legend-dot mixed"></span>
+          Mixed site
+        </span>
+      </div>
+      
+    </section>
+    <div id="map"></div>
+  </main>
+
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.24.0/mapbox-gl.js"></script>
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <script>
+    mapboxgl.accessToken = "pk.eyJ1Ijoia3JpcGthLWlvd2EiLCJhIjoiY21wcG53a2lyMGRhZDJ4cHZibmMyeG5wbyJ9.N5Uz_H8P8NM0jckBmxKrrg";
+
+    const csvPath = "button-factories.csv";
+    const autoplayDelay = 2200;
+
+    // Muscatine-area guardrails.
+    // These prevent swapped lat/lon values from placing markers in Europe or elsewhere.
+    const expectedBounds = {
+      minLat: 40,
+      maxLat: 43,
+      minLon: -93,
+      maxLon: -89
+    };
+
+    const statusEl = document.querySelector("#status");
+    const decadeLabel = document.querySelector("#decadeLabel");
+    const stepButtons = document.querySelector("#stepButtons");
+    const playBtn = document.querySelector("#playBtn");
+
+    let factories = [];
+    let skippedRows = [];
+    let decades = [];
+    let currentStep = 0;
+    let markers = [];
+    let autoplayTimer = null;
+    let isPlaying = true;
+
+    const map = new mapboxgl.Map({
+      container: "map",
+      style: "mapbox://styles/mapbox/light-v11",
+
+      // IMPORTANT:
+      // Mapbox uses [longitude, latitude].
+      center: [-91.04852, 41.426],
+
+      zoom: 10.5
+    });
+
+    map.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function cleanString(value) {
+      return String(value ?? "").trim();
+    }
+
+    function cleanType(value) {
+      return cleanString(value).toLowerCase();
+    }
+
+    function parseYear(value) {
+      const cleaned = cleanString(value);
+
+      if (!cleaned) return NaN;
+
+      const match = cleaned.match(/\d{4}/);
+      return match ? Number(match[0]) : NaN;
+    }
+
+    function normalizeRow(row, index) {
+      return {
+        rowNumber: index + 2,
+        company: cleanString(row.company),
+        address: cleanString(row.address),
+
+        // CSV should store coordinates as:
+        // lat = 41.x
+        // lon = -91.x
+        lat: Number(cleanString(row.lat)),
+        lon: Number(cleanString(row.lon)),
+
+        start_year: parseYear(row.start_year),
+        end_year: parseYear(row.end_year),
+        type: cleanType(row.type)
+      };
+    }
+
+    function getRowProblem(factory) {
+      if (!factory.company) return "missing company";
+      if (!factory.address) return "missing address";
+      if (!Number.isFinite(factory.lat)) return "missing or invalid latitude";
+      if (!Number.isFinite(factory.lon)) return "missing or invalid longitude";
+      if (!Number.isFinite(factory.start_year)) return "missing or invalid start_year";
+      if (!Number.isFinite(factory.end_year)) return "missing or invalid end_year";
+      if (!factory.type) return "missing type";
+
+      if (factory.start_year > factory.end_year) {
+        return "start_year is after end_year";
+      }
+
+      const allowedTypes = new Set(["cutting shop", "finishing plant"]);
+
+      if (!allowedTypes.has(factory.type)) {
+        return `unknown type: ${factory.type}`;
+      }
+
+      if (
+        factory.lat < expectedBounds.minLat ||
+        factory.lat > expectedBounds.maxLat
+      ) {
+        return `latitude outside expected Iowa range: ${factory.lat}. Possible lat/lon swap.`;
+      }
+
+      if (
+        factory.lon < expectedBounds.minLon ||
+        factory.lon > expectedBounds.maxLon
+      ) {
+        return `longitude outside expected Muscatine-area range: ${factory.lon}. Possible lat/lon swap.`;
+      }
+
+      return null;
+    }
+
+    function splitValidAndSkipped(rows) {
+      const valid = [];
+      const skipped = [];
+
+      rows.forEach(row => {
+        const problem = getRowProblem(row);
+
+        if (problem) {
+          skipped.push({
+            rowNumber: row.rowNumber,
+            problem,
+            row
+          });
+        } else {
+          valid.push(row);
+        }
+      });
+
+      return { valid, skipped };
+    }
+
+    function getDecadesFromData(data) {
+      const minYear = Math.min(...data.map(d => d.start_year));
+      const maxYear = Math.max(...data.map(d => d.end_year));
+
+      const firstDecade = Math.floor(minYear / 10) * 10;
+      const lastDecade = Math.floor(maxYear / 10) * 10;
+
+      const output = [];
+
+      for (let decade = firstDecade; decade <= lastDecade; decade += 10) {
+        output.push(decade);
+      }
+
+      return output;
+    }
+
+    function isActiveInDecade(factory, decade) {
+      const decadeStart = decade;
+      const decadeEnd = decade + 9;
+
+      return factory.start_year <= decadeEnd &&
+             factory.end_year >= decadeStart;
+    }
+
+    function groupByAddress(activeFactories) {
+      const grouped = new Map();
+
+      activeFactories.forEach(factory => {
+        const key = factory.address;
+
+        if (!grouped.has(key)) {
+          grouped.set(key, []);
+        }
+
+        grouped.get(key).push(factory);
+      });
+
+      return grouped;
+    }
+
+    function getSiteType(factoriesAtAddress) {
+      const types = new Set(factoriesAtAddress.map(d => d.type));
+
+      if (types.size > 1) return "mixed";
+      if (types.has("finishing plant")) return "finishing-plant";
+
+      return "cutting-shop";
+    }
+
+    function getTypeLabel(type) {
+      if (type === "cutting shop") return "Cutting shop";
+      if (type === "finishing plant") return "Finishing plant";
+
+      return "Mixed site";
+    }
+
+    function makePopupHTML(address, factoriesAtAddress, decade) {
+      const factoryItems = factoriesAtAddress
+        .slice()
+        .sort((a, b) => {
+          return a.start_year - b.start_year ||
+                 a.company.localeCompare(b.company);
+        })
+        .map(factory => {
+          return `
+            <li>
+              <strong>${escapeHTML(factory.company)}</strong><br>
+              ${factory.start_year}–${factory.end_year}
+              <div class="type">${escapeHTML(getTypeLabel(factory.type))}</div>
+            </li>
+          `;
+        })
+        .join("");
+
+      return `
+        <div class="popup">
+          <h2>Active in the ${decade}s</h2>
+          <p class="address">${escapeHTML(address)}</p>
+          <ul>${factoryItems}</ul>
+        </div>
+      `;
+    }
+
+    function clearMarkers() {
+      markers.forEach(marker => marker.remove());
+      markers = [];
+    }
+
+    function createMarkerElement(siteType, count) {
+      const element = document.createElement("button");
+
+      element.className = `factory-marker ${siteType} ${count === 1 ? "single" : ""}`;
+      element.type = "button";
+      element.setAttribute(
+        "aria-label",
+        `${count} active ${count === 1 ? "company" : "companies"}`
+      );
+
+      element.textContent = count > 1 ? String(count) : "";
+
+      return element;
+    }
+
+    function renderMap() {
+      if (!decades.length) return;
+
+      const decade = decades[currentStep];
+
+      const activeFactories = factories.filter(factory =>
+        isActiveInDecade(factory, decade)
+      );
+
+      const grouped = groupByAddress(activeFactories);
+
+    //   decadeLabel.textContent = `${decade}s`;
+
+      clearMarkers();
+
+      for (const [address, factoriesAtAddress] of grouped.entries()) {
+        const first = factoriesAtAddress[0];
+        const siteType = getSiteType(factoriesAtAddress);
+        const count = factoriesAtAddress.length;
+
+        const element = createMarkerElement(siteType, count);
+
+        const popup = new mapboxgl.Popup({
+          offset: 24,
+          closeButton: true,
+          closeOnClick: true
+        }).setHTML(makePopupHTML(address, factoriesAtAddress, decade));
+
+        const marker = new mapboxgl.Marker({
+          element,
+          anchor: "center"
+        })
+
+          // IMPORTANT:
+          // Mapbox marker coordinates are [longitude, latitude].
+          .setLngLat([first.lon, first.lat])
+
+          .setPopup(popup)
+          .addTo(map);
+
+        markers.push(marker);
+      }
+
+      updateStepper();
+    }
+
+    function updateStepper() {
+      const buttons = stepButtons.querySelectorAll("button");
+
+      buttons.forEach((button, index) => {
+        const isActive = index === currentStep;
+
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-current", isActive ? "step" : "false");
+      });
+    }
+
+    function goToStep(index, stopBecauseManual = true) {
+      if (!decades.length) return;
+
+      if (stopBecauseManual) {
+        stopAutoplay();
+      }
+
+      currentStep = (index + decades.length) % decades.length;
+
+      renderMap();
+    }
+
+    function nextStep(stopBecauseManual = false) {
+      goToStep(currentStep + 1, stopBecauseManual);
+    }
+
+    function buildStepper() {
+      stepButtons.innerHTML = "";
+
+      decades.forEach((decade, index) => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.textContent = `${decade}s`;
+
+        button.addEventListener("click", () => {
+          goToStep(index, true);
+        });
+
+        stepButtons.appendChild(button);
+      });
+    }
+
+    function startAutoplay() {
+      stopAutoplay();
+
+      isPlaying = true;
+      playBtn.textContent = "■";
+      playBtn.setAttribute("aria-label", "Stop autoplay");
+      playBtn.setAttribute("title", "Stop autoplay");
+
+      autoplayTimer = window.setInterval(() => {
+        nextStep(false);
+      }, autoplayDelay);
+    }
+
+    function stopAutoplay() {
+      isPlaying = false;
+      playBtn.textContent = "▶";
+      playBtn.setAttribute("aria-label", "Start autoplay");
+      playBtn.setAttribute("title", "Start autoplay");
+
+      if (autoplayTimer) {
+        window.clearInterval(autoplayTimer);
+        autoplayTimer = null;
+      }
+    }
+
+    function toggleAutoplay() {
+      if (isPlaying) {
+        stopAutoplay();
+      } else {
+        startAutoplay();
+      }
+    }
+
+    function fitMapToData() {
+      if (!factories.length) return;
+
+      const bounds = new mapboxgl.LngLatBounds();
+
+      factories.forEach(factory => {
+        // IMPORTANT:
+        // Mapbox bounds also use [longitude, latitude].
+        bounds.extend([factory.lon, factory.lat]);
+      });
+
+      map.fitBounds(bounds, {
+        padding: 80,
+        maxZoom: 15,
+        duration: 900
+      });
+    }
+
+    function updateStatus() {
+      const siteCount = new Set(factories.map(d => d.address)).size;
+
+      let message = `${factories.length} valid rows loaded across ${siteCount} addresses.`;
+
+      if (skippedRows.length > 0) {
+        message += ` ${skippedRows.length} row${skippedRows.length === 1 ? "" : "s"} skipped. Check the browser console for details.`;
+
+        console.warn("Skipped rows:", skippedRows);
+      }
+
+    //   statusEl.textContent = message;
+    }
+
+    playBtn.addEventListener("click", toggleAutoplay);
+
+    map.on("load", () => {
+      Papa.parse(csvPath, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+
+        complete: results => {
+          const normalizedRows = results.data.map(normalizeRow);
+          const split = splitValidAndSkipped(normalizedRows);
+
+          factories = split.valid;
+          skippedRows = split.skipped;
+
+          if (!factories.length) {
+            statusEl.textContent = "No valid rows found in the CSV.";
+            decadeLabel.textContent = "No data";
+
+            console.warn("Skipped rows:", skippedRows);
+
+            return;
+          }
+
+          decades = getDecadesFromData(factories);
+
+          buildStepper();
+          fitMapToData();
+          renderMap();
+          updateStatus();
+          startAutoplay();
+        },
+
+        error: error => {
+          console.error(error);
+
+          statusEl.textContent = "Could not load CSV.";
+          decadeLabel.textContent = "Error";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
