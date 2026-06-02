@@ -3,18 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>River Timeline Sidecar</title>
+  <title>River Timeline</title>
+  <link rel="stylesheet" href="https://use.typekit.net/mgw5thy.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
   <style>
     :root {
-      --bg: #f6f1e8;
-      --paper: #fffaf1;
-      --ink: #1f2a2e;
-      --muted: #6b6f6f;
-      --river: #2f7f9f;
-      --river-light: #8fc7d8;
+      --bg: #fdf9e6;
+      --pearl: #ffffff;
+      --ink: #01205C;
+      --muted: #646b6d;
+      --river: #01205C;
+      --river-light: #a9d6e3;
       --accent: #a85f3f;
-      --line-width: 74px;
-      --max-width: 100%;
+      --line-width: 76px;
+      --content-padding: clamp(1.25rem, 3vw, 3rem);
+      --page-max: 1480px;
+      --text-max: 32rem;
+      --media-min: min(52vw, 58rem);
     }
 
     * {
@@ -23,96 +28,61 @@
 
     html {
       scroll-behavior: smooth;
+      width: 100%;
     }
 
     body {
       margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
+      width: 100%;
+      font-family: "kopius", Georgia, "Times New Roman", serif;
+      font-weight: 500;
+      font-style: normal;
       color: var(--ink);
       background: var(--bg);
       line-height: 1.5;
     }
+    h1 {
+      font-family: "kopius", serif;
+    font-weight: 800;
+    font-style: normal;
+    }
+    h2 {
+      font-family: "kopius", Georgia, "Times New Roman", serif;
+      font-weight: 700;
+      font-style: normal;
+    }
 
     img,
-    video {
+    video,
+    iframe {
       max-width: 100%;
       display: block;
     }
 
-    .site-header {
-      min-height: 70vh;
-      display: grid;
-      place-items: center;
-      padding: 6rem 1.5rem;
-      background:
-        linear-gradient(rgba(31, 42, 46, 0.45), rgba(31, 42, 46, 0.7)),
-        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80") center/cover;
-      color: white;
-      text-align: center;
+    .timeline-page {
+      min-height: 100vh;
+      background: var(--bg);
+      overflow-x: clip;
     }
 
-    .site-header__inner {
-      max-width: 780px;
-    }
-
-    .eyebrow {
-      margin: 0 0 1rem;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 0.8rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(2.8rem, 8vw, 7rem);
-      line-height: 0.9;
-      font-weight: 500;
-    }
-
-    .dek {
-      max-width: 620px;
-      margin: 1.5rem auto 0;
-      font-size: clamp(1.1rem, 2vw, 1.45rem);
-    }
-
-    .intro {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 5rem 1.5rem 3rem;
-      font-size: 1.25rem;
-    }
-
-    .sidecar {
-      width: min(100%, var(--max-width));
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: minmax(360px, 36%) minmax(420px, 54%);
-      gap: clamp(2rem, 5vw, 5rem);
-      padding: 0 0 6rem;
-      align-items: start;
-    }
-
-    .timeline-column {
+    .timeline-scroll {
       position: relative;
-      padding: 1rem;
-      padding-left: calc(var(--line-width) + 1.25rem);
-      background-color: #fff;
+      min-height: 100vh;
+      width: min(100%, var(--page-max));
+      margin: 0 auto;
+      padding: 12vh var(--content-padding) 18vh calc(var(--line-width) + var(--content-padding));
     }
 
-    /*
-      The river is one SVG that runs the full height of the timeline.
-      JavaScript sets its height and redraws the wavy path whenever the page loads or resizes.
-    */
     .river-svg {
       position: absolute;
       top: 0;
-      left: 0;
+      left: calc(var(--content-padding) * 0.55);
       width: var(--line-width);
-      height: 100%;
+      min-height: 100%;
+      height: auto;
       overflow: visible;
       pointer-events: none;
-      z-index: 0;
+      z-index: 3;
     }
 
     .river-base {
@@ -121,7 +91,7 @@
       stroke-width: 22;
       stroke-linecap: round;
       stroke-linejoin: round;
-      opacity: 0.45;
+      opacity: 0.48;
     }
 
     .river-progress {
@@ -132,424 +102,1018 @@
       stroke-linejoin: round;
       stroke-dasharray: 1;
       stroke-dashoffset: 1;
-      filter: drop-shadow(0 2px 2px rgba(20, 60, 80, 0.22));
+      filter: drop-shadow(0 2px 2px rgba(20, 60, 80, 0.2));
     }
 
     .timeline-item {
       position: relative;
       z-index: 1;
-      min-height: 78vh;
+      min-height: 82vh;
+      display: grid;
+      grid-template-columns: minmax(18rem, var(--text-max)) minmax(24rem, 1fr);
+      gap: clamp(2rem, 5vw, 5rem);
+      align-items: start;
       padding: 4rem 0;
-      display: flex;
-      align-items: center;
     }
 
-    .timeline-card {
+    .timeline-text {
       position: relative;
-      padding: 1.4rem 1.4rem 1.5rem;
-      background: rgba(255, 250, 241, 0.94);
-      /* border: 1px solid rgba(31, 42, 46, 0.12); */
-      border-radius: 1.2rem;
-      /* box-shadow: 0 18px 45px rgba(31, 42, 46, 0.08); */
-      transition: transform 240ms ease, border-color 240ms ease, background 240ms ease;
+      width: 100%;
+      max-width: var(--text-max);
+      transition: opacity 240ms ease, transform 240ms ease;
     }
 
-    .timeline-card::before {
-      content: "";
+    .timeline-dot {
       position: absolute;
-      left: calc(-1.25rem - var(--line-width) / 2 - 0.45rem);
       top: 50%;
-      width: 0.9rem;
-      height: 0.9rem;
-      transform: translateY(-50%);
+      left: 0;
+      width: 1rem;
+      height: 1rem;
       border-radius: 999px;
-      background: var(--paper);
+      background: var(--pearl);
       border: 4px solid var(--river);
       box-shadow: 0 0 0 6px rgba(47, 127, 159, 0.16);
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      pointer-events: none;
     }
 
-    .timeline-item.is-active .timeline-card {
-      transform: translateX(0.35rem);
-      border-color: rgba(168, 95, 63, 0.38);
-      background: white;
+    .timeline-item:not(.is-active) .timeline-text,
+    .timeline-item:not(.is-active) .timeline-media-group {
+      opacity: 0.58;
+    }
+
+    .timeline-item.is-active .timeline-text {
+      opacity: 1;
+      transform: translateX(0.3rem);
+    }
+
+    .timeline-item.is-active .timeline-media-group {
+      opacity: 1;
     }
 
     .date {
-      margin: 0 0 0.4rem;
+      margin: 0 0 0.5rem;
       color: var(--accent);
       font-family: Arial, Helvetica, sans-serif;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.12em;
+      /* text-transform: uppercase; */
+    }
+    span.date {
       text-transform: uppercase;
     }
 
-    .timeline-card h2 {
+    .timeline-text h1,
+    .timeline-text h2 {
       margin: 0 0 0.75rem;
-      font-size: clamp(1.65rem, 3vw, 2.6rem);
       line-height: 1.05;
-      font-weight: 500;
+      /* font-weight: 500; */
+      color: var(--ink);
+    }
+    .timeline-text h3 {
+      margin-bottom: 0.15rem;
     }
 
-    .timeline-card p {
-      margin: 0 0 1rem;
+    .timeline-text h1 {
+      font-size: clamp(2.6rem, 5vw, 5rem);
+      line-height: 1.05;
+    }
+
+    .timeline-text h2 {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+    }
+
+    .timeline-text p {
+      margin: 0;
       color: var(--muted);
-      font-size: 1.05rem;
+      font-size: 1rem;
     }
 
-    .jump-link {
-      display: inline-block;
-      margin-top: 0.4rem;
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--river);
-      text-decoration: none;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .media-column {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 2rem 0;
-    }
-
-    .media-stage {
-      position: relative;
+    .timeline-media-group {
       width: 100%;
-      height: min(78vh, 720px);
-      border-radius: 1.5rem;
-      overflow: hidden;
+      transition: opacity 240ms ease, transform 240ms ease;
+    }
+
+    .timeline-media,
+    .article-video {
+      margin: 0;
+    }
+
+    .timeline-media + .article-video,
+    .article-video + .timeline-media {
+      margin-top: 1.25rem;
+    }
+
+    .timeline-media {
       background: #111;
-      box-shadow: 0 24px 70px rgba(31, 42, 46, 0.28);
-      isolation: isolate;
+      overflow: hidden;
+      border-radius: 0.8rem;
+      box-shadow: 0 0.9rem 2rem rgba(31, 42, 46, 0.16);
     }
 
-    .media-panel {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transform: scale(1.025);
-      transition: opacity 420ms ease, transform 700ms ease;
-      pointer-events: none;
-    }
-
-    .media-panel.is-active {
-      opacity: 1;
-      transform: scale(1);
-      pointer-events: auto;
-      z-index: 2;
-    }
-
-    .media-panel img,
-    .media-panel video {
+    .timeline-media img,
+    .timeline-media video {
       width: 100%;
-      height: 100%;
+      aspect-ratio: 16 / 10;
       object-fit: cover;
     }
 
-    .media-panel::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent 50%);
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .caption {
-      position: absolute;
-      left: 1.25rem;
-      right: 1.25rem;
-      bottom: 1.25rem;
-      z-index: 2;
+    .timeline-media figcaption {
+      padding: 0.9rem 1rem 1rem;
       color: white;
       font-family: Arial, Helvetica, sans-serif;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      background: var(--ink);
     }
+
+    .slide figcaption, .panorama-card figcaption {
+      padding: 20px;
+      background-color: var(--ink);
+    }
+
 
     .caption-title {
       margin: 0 0 0.25rem;
       font-size: 1rem;
       font-weight: 700;
+      color: white;
     }
 
     .caption-text {
       margin: 0;
-      max-width: 38rem;
       font-size: 0.9rem;
-      opacity: 0.88;
+      color: rgba(255, 255, 255, 0.82);
     }
 
-    .site-footer {
-      max-width: 760px;
+    .article-video {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 0.8rem;
+      box-shadow: 0 0.9rem 2rem rgba(31, 42, 46, 0.16);
+      background: #111;
+    }
+
+    .article-video iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .timeline-item:first-of-type {
+      /* align-items: flex-start; */
+      min-height: 100vh;
+      padding-top: 1vh;
+    }
+
+    .timeline-item:first-of-type .timeline-text {
+      transform: none;
+    }
+
+    .timeline-item:first-of-type:not(.timeline-hero) .timeline-dot {
+      display: none;
+    }
+
+
+    .illustration-feature {
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .illustration-feature svg {
+      width: min(100%, 36rem);
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 0.75rem 1.2rem rgba(31, 42, 46, 0.12));
+    }
+
+    .story-button,
+    .media-control-button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      background: var(--ink);
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 0.86rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-decoration: none;
+      padding: 0.8rem 1.1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+    }
+
+    .story-button:hover,
+    .media-control-button:hover {
+      background: var(--accent);
+    }
+
+    .story-btn-wrap {
+      margin-top:16px;
+    }
+
+    .slideshow-media {
+      position: relative;
+      background: #111;
+      overflow: hidden;
+      border-radius: 0.8rem;
+      box-shadow: 0 0.9rem 2rem rgba(31, 42, 46, 0.16);
+    }
+
+    .slide {
+      display: none;
+    }
+
+    .slide.is-current {
+      display: block;
+    }
+
+    .slide img,
+    .slide video {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #111;
+    }
+
+    .slideshow-controls {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.9rem 1rem 1rem;
+      background: var(--ink);
+    }
+
+    .slideshow-controls .media-control-button {
+      background: rgba(255, 255, 255, 0.13);
+      padding: 0.65rem 0.9rem;
+    }
+
+    .slideshow-controls .media-control-button:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .single-video video {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: #111;
+    }
+
+    .panorama-card {
+      background: #111;
+      overflow: hidden;
+      border-radius: 0.8rem;
+      box-shadow: 0 0.9rem 2rem rgba(31, 42, 46, 0.16);
+    }
+
+    .panorama-window {
+      width: 100%;
+      height: clamp(18rem, 42vw, 34rem);
+      background: #111;
+    }
+
+    .panorama-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      padding: 0.9rem 1rem 0;
+      background: var(--ink);
+    }
+
+    .panorama-actions .media-control-button {
+      background: rgba(255, 255, 255, 0.13);
+      padding: 0.65rem 0.9rem;
+    }
+
+    .panorama-actions .media-control-button:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    .pnlm-container {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+
+
+    .timeline-hero {
+      min-height: 100vh;
+      margin-top: -12vh;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      isolation: isolate;
+    }
+
+    .timeline-hero::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(50% - 50dvw);
+      right: calc(50% - 50dvw);
+      width: auto;
+      transform: none;
+      background:
+        linear-gradient(rgba(253, 249, 230, 0.18), rgba(253, 249, 230, 0.18)),
+        url("img/bridge.jpg") center / cover no-repeat;
+      z-index: -2;
+    }
+
+    .timeline-hero::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(50% - 50dvw);
+      right: calc(50% - 50dvw);
+      width: auto;
+      transform: none;
+      background: radial-gradient(circle at center, rgba(253, 249, 230, 0.14), rgba(253, 249, 230, 0.44));
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .timeline-hero .timeline-text {
+      max-width: min(65rem, 86vw);
+      text-align: center;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      padding: clamp(1rem, 4vw, 2.5rem);
+      transform: none;
+    }
+
+    .timeline-hero .timeline-text h1 {
+      font-size: clamp(3.2rem, 6vw, 7.5rem);
+      text-wrap: balance;
+      text-shadow: 0 0.16rem 0.9rem rgba(253, 249, 230, 0.9);
+    }
+
+    .timeline-hero .timeline-text p {
+      max-width: 34rem;
       margin: 0 auto;
-      padding: 4rem 1.5rem 6rem;
-      color: var(--muted);
+      color: var(--ink);
+      font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+      text-shadow: 0 0.1rem 1rem rgba(253, 249, 230, 0.8);
+    }
+
+    .timeline-hero .timeline-media-group {
+      display: none;
+    }
+
+    .timeline-hero .timeline-dot {
+      display: block;
+    }
+
+    .illustration-feature img {
+      max-height: 66vh;
+    }
+
+    .timeline-text p + p {
+      margin-top: 1rem;
+    }
+
+    @supports not (overflow: clip) {
+      .timeline-page {
+        overflow-x: hidden;
+      }
+    }
+
+    @media (min-width: 901px) {
+      .timeline-item:not(.timeline-hero) .timeline-text {
+        background: var(--pearl);
+        padding: clamp(1.5rem, 2vw, 2.25rem);
+        border-radius: 0.8rem;
+        box-shadow: 0 0.9rem 2rem rgba(31, 42, 46, 0.08);
+      }
     }
 
     @media (max-width: 900px) {
-      .sidecar {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+      :root {
+        --line-width: 56px;
       }
 
-      .media-column {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        height: 48vh;
-        padding: 0.75rem 0;
-        background: var(--bg);
-      }
-
-      .media-stage {
-        height: 43vh;
-      }
-
-      .timeline-column {
-        padding-left: calc(var(--line-width) + 0.7rem);
+      .timeline-scroll {
+        padding-top: 8vh;
       }
 
       .timeline-item {
-        min-height: 70vh;
-        padding: 2.5rem 0;
-      }
-    }
-
-    @media (max-width: 560px) {
-      :root {
-        --line-width: 48px;
+        min-height: auto;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+        padding: 3.25rem 0;
       }
 
-      .site-header {
-        min-height: 60vh;
+      .timeline-text {
+        max-width: 34rem;
       }
 
-      .intro {
-        padding-top: 3rem;
+
+      .timeline-hero {
+        margin-top: -8vh;
       }
 
-      .sidecar {
-        padding-inline: 1rem;
-      }
-
-      .timeline-card {
-        padding: 1.1rem;
-      }
-
-      .timeline-card::before {
-        left: calc(-0.7rem - var(--line-width) / 2 - 0.35rem);
+      .timeline-hero .timeline-text {
+        max-width: min(34rem, 88vw);
       }
     }
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="site-header__inner">
-      <p class="eyebrow">Where the River Bends</p>
-      <h1>A River Timeline</h1>
-      <p class="dek">A sidecar-style page where the left column scrolls through a timeline and the right column changes media as each moment comes into focus.</p>
-    </div>
-  </header>
+  <main class="timeline-page" aria-label="River timeline">
+    <div class="timeline-scroll" id="timelineScroll">
+      <svg class="river-svg" id="riverSvg" aria-hidden="true">
+        <path class="river-base" id="riverBase"></path>
+        <path class="river-progress" id="riverProgress"></path>
+      </svg>
 
-  <main>
-    <section class="intro">
-      <p>
-        Replace these placeholder entries with the actual Muscatine timeline. Each timeline item is connected by a wavy SVG line that behaves like a river. As each item becomes active, the matching image or video appears in the sticky media panel.
-      </p>
-    </section>
-
-    <section class="sidecar" aria-label="River timeline sidecar">
-      <div class="timeline-column" id="timelineColumn">
-        <svg class="river-svg" id="riverSvg" aria-hidden="true">
-          <path class="river-base" id="riverBase"></path>
-          <path class="river-progress" id="riverProgress"></path>
-        </svg>
-
-        <article class="timeline-item is-active" data-media="media-1">
-          <div class="timeline-card">
-            <p class="date">1850s</p>
-            <h2>Shells become industry</h2>
-            <p>
-              Freshwater mussel shells from the Mississippi River helped turn Muscatine into a center of pearl button production. The river was not just scenery. It was material, labor, transport, and identity.
-            </p>
-            <a class="jump-link" href="#media-1">View archival image</a>
-          </div>
-        </article>
-
-        <article class="timeline-item" data-media="media-2">
-          <div class="timeline-card">
-            <p class="date">1890s</p>
-            <h2>Factories line the riverfront</h2>
-            <p>
-              Button factories expanded along the city’s industrial edge. This is where you might describe a specific factory, founder, workforce, or site polygon from your map.
-            </p>
-            <a class="jump-link" href="#media-2">View factory image</a>
-          </div>
-        </article>
-
-        <article class="timeline-item" data-media="media-3">
-          <div class="timeline-card">
-            <p class="date">1910s</p>
-            <h2>The button boom peaks</h2>
-            <p>
-              At its height, the button industry connected river ecology, immigrant labor, manufacturing, fashion, and national markets. This entry could pair with a slideshow, map detail, or short video loop.
-            </p>
-            <a class="jump-link" href="#media-3">View production image</a>
-          </div>
-        </article>
-
-        <article class="timeline-item" data-media="media-4">
-          <div class="timeline-card">
-            <p class="date">1930s–1950s</p>
-            <h2>Materials and markets shift</h2>
-            <p>
-              Plastics and changing markets disrupted the pearl button trade. This is a good place to move from local craft and labor to a broader industrial pattern.
-            </p>
-            <a class="jump-link" href="#media-4">View transition image</a>
-          </div>
-        </article>
-
-        <article class="timeline-item" data-media="media-5">
-          <div class="timeline-card">
-            <p class="date">Today</p>
-            <h2>What remains in the landscape?</h2>
-            <p>
-              The final entry can connect past and present: remaining buildings, altered riverfronts, museum objects, oral histories, or modern industries that echo earlier patterns of making.
-            </p>
-            <a class="jump-link" href="#media-5">View present-day image</a>
-          </div>
-        </article>
-      </div>
-
-      <aside class="media-column" aria-label="Timeline media">
-        <div class="media-stage">
-          <figure class="media-panel is-active" id="media-1">
-            <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80" alt="River landscape placeholder" />
-            <figcaption class="caption">
-              <p class="caption-title">River as raw material</p>
-              <p class="caption-text">Use an archival image, map, or close-up of river mussel shells here.</p>
-            </figcaption>
+      <!-- HERO -->
+      <article class="timeline-item timeline-hero is-active">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <h1>Bridging the Past and Present</h1>
+          <p>
+            An abridged multimedia history of Muscatine, Iowa
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
+            <img src="img/bridge.jpg" alt="bridge" />
+            
           </figure>
+        </div>
+      </article>
 
-          <figure class="media-panel" id="media-2">
-            <img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1400&q=80" alt="Industrial building placeholder" />
-            <figcaption class="caption">
-              <p class="caption-title">Factory district</p>
-              <p class="caption-text">This could show a factory building, historic Sanborn map, or polygon detail.</p>
-            </figcaption>
+
+       <!-- Beginning -->
+      <article class="timeline-item slideshow-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1830s</p>
+          <h2>Muscatine's Beginning</h2>
+          <H2 style="color:red">THIS NEEDS FACT CHECKING AND REWRITING</H2>
+          
+          <h3>Blackhawk War <span class="date">April&ndash;August 1832</span></h3>
+          <p>
+            The Black Hawk War was a conflict between the United States and Native Americans led by Black Hawk, a Sauk leader. Following his defeat, Black Hawk and his allies were forced to cede a 50-mile-wide strip of land along the western banks of the Mississippi River, officially known as the Black Hawk Purchase. This would include the land that became Muscatine.
+          </p>
+          <h3>First Settlers <span class="date">1833</span></h3>
+          <p>
+            Muscatine, seat of Muscatine County, first came into existence in the summer of 1833 when Colonel George Davenport of Rock Island, Illinois, sent three representatives into the territory to set up a trading post. The outpost was nicknamed "Casey's Woodpile" OR MAYBE "Casey's Wood Yard of Newburg" because the primary business of the depot was supplying the passing steamboats with cut wood to burn for fuel.
+          </p>
+          <h3>Bloomington to Muscatine <span class="date">June 7, 1849</span></h3>
+          <p>
+            The town referred to as Bloomington was originally incorporated in 1839, but the name led to confusion. The town's citizens had petitioned for the change because mail was frequently being misrouted to other towns named Bloomington in neighboring states.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="slideshow-media" data-slideshow>
+            <div class="slide is-current">
+              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 1: River context</p>
+                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
+                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+              </video>
+              <figcaption>
+                <p class="caption-title">Slide 2: Video clip</p>
+                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 3: Detail image</p>
+                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+              </figcaption>
+            </div>
+            <div class="slideshow-controls" aria-label="Slideshow controls">
+              <button class="media-control-button" type="button" data-slide-prev>Previous</button>
+              <button class="media-control-button" type="button" data-slide-next>Next</button>
+            </div>
           </figure>
+        </div>
+      </article>
 
-          <figure class="media-panel" id="media-3">
-            <img src="https://images.unsplash.com/photo-1516937941344-00b4e0337589?auto=format&fit=crop&w=1400&q=80" alt="Manufacturing placeholder" />
-            <figcaption class="caption">
-              <p class="caption-title">Production and labor</p>
-              <p class="caption-text">Use a photo sequence or short video loop to show process and scale.</p>
-            </figcaption>
+       <!-- Lumber -->
+      <article class="timeline-item slideshow-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1840s&ndash;1890s</p>
+          <h2>Lumber Town</h2> 
+          <p>
+           The lumber industry boomed in Muscatine, Iowa, due to its strategic location on the Mississippi River, which allowed for cheap transport of logs from northern forests.
+          </p>
+          <p>THIS IS FROM <a href="https://www.muscatineiowa.gov/341/Muscatine-History">https://www.muscatineiowa.gov/341/Muscatine-History</a>Lumbering, saw and planing mills, sash and door factories, and other forms of woodworking were a major industry in Muscatine. When the nearby forests were cut off, lumber operators moved up the Mississippi River and brought the logs downstream by water. With the coming of the railroad, lumber was shipped in, but through all these changes various types of woodworking continued to be Muscatine's major industry. Muscatine businessmen acquired forest lands and continued to operate saw mills in various parts of the county.</p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="slideshow-media" data-slideshow>
+            <div class="slide is-current">
+              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 1: River context</p>
+                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
+                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+              </video>
+              <figcaption>
+                <p class="caption-title">Slide 2: Video clip</p>
+                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 3: Detail image</p>
+                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+              </figcaption>
+            </div>
+            <div class="slideshow-controls" aria-label="Slideshow controls">
+              <button class="media-control-button" type="button" data-slide-prev>Previous</button>
+              <button class="media-control-button" type="button" data-slide-next>Next</button>
+            </div>
           </figure>
+        </div>
+      </article>
 
-          <figure class="media-panel" id="media-4">
-            <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1400&q=80" alt="Old machinery placeholder" />
-            <figcaption class="caption">
-              <p class="caption-title">Industrial transition</p>
-              <p class="caption-text">Pair this section with materials, market shifts, or decline of the shell-button industry.</p>
-            </figcaption>
+       <!-- Twain -->
+      <article class="timeline-item slideshow-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1854</p>
+          <h2>Mark Twain Works in Muscatine</h2> 
+          <p>
+           Mark Twain, called Muscatine home back in 1854. Twain's brother, Orion, was part owner of the still operating <a href="https://muscatinejournal.com/"><i>Muscatine Journal</i></a>.</p><p>  In his book, “Life on the Mississippi”, he fondly recalled the sunsets in Muscatine, writing “I remember Muscatine &mdash; still more pleasantly &mdash; for its summer sunsets.  I have never seen any, on either side of the ocean, that equaled them."
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="slideshow-media" data-slideshow>
+            <div class="slide is-current">
+              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 1: River context</p>
+                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
+                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+              </video>
+              <figcaption>
+                <p class="caption-title">Slide 2: Video clip</p>
+                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 3: Detail image</p>
+                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+              </figcaption>
+            </div>
+            <div class="slideshow-controls" aria-label="Slideshow controls">
+              <button class="media-control-button" type="button" data-slide-prev>Previous</button>
+              <button class="media-control-button" type="button" data-slide-next>Next</button>
+            </div>
           </figure>
+        </div>
+      </article>
 
-          <figure class="media-panel" id="media-5">
-            <img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1400&q=80" alt="Present-day interior placeholder" />
-            <figcaption class="caption">
-              <p class="caption-title">Memory in the present</p>
-              <p class="caption-text">Show present-day sites, museum objects, descendants, or remaining architecture.</p>
+      <!-- CLARK -->
+      <article class="timeline-item panorama-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1868</p>
+          <h2>Alexander Clark Wins Desegregation</h2>
+           <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
+            <img src="img/clark.jpg" alt="Alexander Clark" />
+            
+          </figure>
+          <p>
+            Alexander G. Clark was a Black laborer, barber, lawyer, diplomat and activist.
+            In 1867, when the Muscatine school district said Clark's daughter, Susan, 12, couldn't attend the same public school that white students attended, he sued. The Iowa Supreme Court ruled in his favor in 1868, saying that all children could attend a common school.
+          </p>
+          <div class="story-btn-wrap"><a class="story-button" href="#illustration-story">See the related story</a></div>
+        </div>
+       <div class="timeline-media-group">
+          <figure class="panorama-card">
+            <div class="panorama-window" id="muscatinePanorama" aria-label="Interactive 360 image placeholder"></div>
+            <!-- <div class="panorama-actions">
+              <button class="media-control-button" type="button" id="panoramaFullscreenButton">Full screen</button>
+            </div> -->
+            <figcaption>
+              <p class="caption-title">Alexander Clark's Home</p>
+              <p class="caption-text">Something about his home becoming a musuem.</p>
             </figcaption>
           </figure>
         </div>
-      </aside>
-    </section>
+      </article>
+
+       <!-- PRODUCE-->
+      <article class="timeline-item illustration-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1920s&ndash;Today</p>
+          <h2>FRUIT (AND VEGGIE) LAND</h2>
+          <p>
+            Muscatine's famous melon industry &mdash; as well as other truck produce &mdash; blossomed in the late 19th century. The region's sandy, well-drained soil and micro-climate made it a perfect agricultural hub. It became a major economic force, with hundreds of train carloads of melons shipped across the Midwest annually.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
+            <img src="img/melons.jpg" alt="Xi Jinping" />
+            <a class="story-button" href="#illustration-story">See the related story</a>
+          </figure>
+        </div>
+      </article>
+
+       <!-- BUTTONS-->
+      <article class="timeline-item illustration-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">late 1890s&ndash;1940s</p>
+          <h2>PEARL CITY</h2>
+          <p>
+            Button factories expanded along the city's industrial edge.
+          </p>
+          <p>German immigrant John Frederick Boepple founded the first button-cutting factory in Muscatine, utilizing the abundant freshwater mussel shells of the Mississippi River.</p>
+          <p>THIS IS FROM <a href="https://www.muscatineiowa.gov/341/Muscatine-History">https://www.muscatineiowa.gov/341/Muscatine-History</a>John Fred Boepple, a German immigrant with a flair for making buttons, came to Muscatine in 1887. By mistake, Boepple found that freshwater mussel shells, instead of animal horns, made a stronger button that more closely resembled the fashionable buttons made of expensive import marine shells. Nicholas Barry and his sons invented a machine which turned out better buttons with less labor. Muscatine soon became the world's largest pearl button manufacturer, its factories employing half of the Muscatine workforce during the turn of the century, earning it the name of Pearl Button Capital of the World. In 1905, more than 1.5 billion pearl buttons were made in Muscatine. Today, nearly all buttons are made from plastic.</p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
+            <img src="img/clamming.jpg" alt="Xi Jinping" />
+            <a class="story-button" href="#illustration-story">See the related story</a>
+          </figure>
+        </div>
+      </article>
+
+      <!-- INDUSTRY -->
+      <article class="timeline-item slideshow-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1890s&ndash;Today</p>
+          <h2>Industrialization & Modern Industry</h2>
+          <h3>Heinz <span class="date">1893</span></h3>
+          <p>
+            Established in 1893, the Heinz plant in Muscatine was the company's first major expansion outside of Pittsburgh. It is the largest Heinz facility outside of corporate headquarters, anchored by a rich history of tomato farming and ongoing, multi-million-dollar modernizations.
+          </p>
+          <h3>Stanley Corporations <span class="date">1913</span></h3>
+          <p>
+            Stanley Consultants (1913), HNI Corporation (1947), Stanley Center for Peace and Security (1956).
+          </p>
+          <h3>Kent Worldwide <span class="date">1936</span></h3>
+          <p>
+            The growing feed business moves to Muscatine, Iowa, capitalizing on the transportation benefits of the Mississippi River.</p>
+            
+          <h3>Carver Pump <span class="date">1938</span></h3>
+           <p>
+            Carver Pump was founded by Roy Carver Sr. in 1938. The original factory was located next to the Mississippi river in Muscatine, Iowa which is about 25 miles southwest of the Quad Cities area.</p>
+          <h3>Grain Processing Corporation <span class="date">1943</span></h3>
+            <p>Grain Processing Corporation (GPC) was founded and incorporated on February 11, 1943 in Muscatine, Iowa. It was originally established by S.G. Stein and G.A. Kent to build and operate an industrial alcohol plant for the World War II synthetic rubber program.
+          </p>
+          <h3>Bandag <span class="date">1957</span></h3>
+            <p>Bandag was founded in Muscatine in 1957 by American entrepreneur Roy J. Carver. Carver purchased the U.S. rights to a German "cold-cure" tire-retreading process and started operations in a former sauerkraut plant in the city.
+          </p>
+          
+        </div>
+        <div class="timeline-media-group">
+          <figure class="slideshow-media" data-slideshow>
+            <div class="slide is-current">
+              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 1: River context</p>
+                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
+                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+              </video>
+              <figcaption>
+                <p class="caption-title">Slide 2: Video clip</p>
+                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 3: Detail image</p>
+                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+              </figcaption>
+            </div>
+            <div class="slideshow-controls" aria-label="Slideshow controls">
+              <button class="media-control-button" type="button" data-slide-prev>Previous</button>
+              <button class="media-control-button" type="button" data-slide-next>Next</button>
+            </div>
+          </figure>
+        </div>
+      </article>
+
+
+      <!-- LATINO -->
+      <article class="timeline-item video-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">Late 1890s</p>
+          <h2>Latino Community</h2>
+          <p>
+            As the industrial part of Muscatine started develop, laborers were needed to work in the factories and fields.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="timeline-media single-video">
+            <video controls playsinline poster="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80">
+              <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+            </video>
+            <figcaption>
+              <p class="caption-title">Single video placeholder</p>
+              <p class="caption-text">Replace this with an interview, process video, narrated explainer, or edited mini-story.</p>
+            </figcaption>
+          </figure>
+        </div>
+      </article>
+
+       <!-- ART -->
+      <article class="timeline-item video-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1965</p>
+          <h2>Art Center</h2>
+          <p>
+            Open since 1965, the Muscatine Art Center is many things to the community of Muscatine.It represents a gathering place for celebrating the area’s history and culture.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="timeline-media single-video">
+            <video controls playsinline poster="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80">
+              <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+            </video>
+            <figcaption>
+              <p class="caption-title">Single video placeholder</p>
+              <p class="caption-text">Replace this with an interview, process video, narrated explainer, or edited mini-story.</p>
+            </figcaption>
+          </figure>
+        </div>
+      </article>
+
+      <!-- JINPING-->
+      <article class="timeline-item illustration-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1985</p>
+          <h2>Xi Jinping Visits</h2>
+          <p>
+            The relationship between Muscatine, Iowa, and China began in April 1985, when Chinese President Xi Jinping—then a 31-year-old county official—visited Muscatine as part of an agricultural delegation.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
+            <img src="img/jinping.jpg" alt="Xi Jinping" />
+            <a class="story-button" href="#illustration-story">See the related story</a>
+          </figure>
+        </div>
+      </article>
+
+       <!-- FUTURE -->
+      <article class="timeline-item video-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">NOW</p>
+          <h2>Looking Ahead</h2>
+          <p>
+            What is the future of Muscatine? We asked current residents.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="timeline-media single-video">
+            <video controls playsinline poster="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80">
+              <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+            </video>
+            <figcaption>
+              <p class="caption-title">Single video placeholder</p>
+              <p class="caption-text">Replace this with an interview, process video, narrated explainer, or edited mini-story.</p>
+            </figcaption>
+          </figure>
+        </div>
+      </article>
+
+      <!-- SLIDESHOW TEMPLATE -->
+      <!-- <article class="timeline-item slideshow-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1830s&ndash;1890s</p>
+          <h2>Slideshow: River Work</h2>
+          <p>
+            This dummy section is built for a slideshow. Use it when the story needs a short sequence of archival images, present-day photos, or brief video clips.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="slideshow-media" data-slideshow>
+            <div class="slide is-current">
+              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 1: River context</p>
+                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
+                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+              </video>
+              <figcaption>
+                <p class="caption-title">Slide 2: Video clip</p>
+                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title">Slide 3: Detail image</p>
+                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+              </figcaption>
+            </div>
+            <div class="slideshow-controls" aria-label="Slideshow controls">
+              <button class="media-control-button" type="button" data-slide-prev>Previous</button>
+              <button class="media-control-button" type="button" data-slide-next>Next</button>
+            </div>
+          </figure>
+        </div>
+      </article> -->
+
+      <!-- VIDEO TEMPLATE -->
+      <!-- <article class="timeline-item video-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1890s&ndash;1920s</p>
+          <h2>Video: Pearl City</h2>
+          <p>
+            This dummy section is built for one video. Use it when a single clip or short edited story should carry the media role for the section.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="timeline-media single-video">
+            <video controls playsinline poster="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80">
+              <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
+            </video>
+            <figcaption>
+              <p class="caption-title">Single video placeholder</p>
+              <p class="caption-text">Replace this with an interview, process video, narrated explainer, or edited mini-story.</p>
+            </figcaption>
+          </figure>
+        </div>
+      </article> -->
+
+      <!-- 360 TEMPLATE -->
+      <!-- <article class="timeline-item panorama-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">Today</p>
+          <h2>360 Image: Explore the Site</h2>
+          <p>
+            This dummy section is built for a real 360 image viewer using Pannellum. Drag to look around, zoom with the controls, or use full screen mode.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="panorama-card">
+            <div class="panorama-window" id="muscatinePanorama" aria-label="Interactive 360 image placeholder"></div>
+            <div class="panorama-actions">
+              <button class="media-control-button" type="button" id="panoramaFullscreenButton">Full screen</button>
+            </div>
+            <figcaption>
+              <p class="caption-title">360 image placeholder</p>
+              <p class="caption-text">This uses Pannellum. Replace the panorama URL in the JavaScript with an equirectangular image from a 360 camera or phone app.</p>
+            </figcaption>
+          </figure>
+        </div>
+      </article> -->
+
+      <!-- ILLUSTRATION WITH LINK TEMPLATE -->
+      <!-- <article class="timeline-item illustration-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1830s&ndash;1890s</p>
+          <h2>Slideshow: River Work</h2>
+          <p>
+            This dummy section is built for a slideshow. Use it when the story needs a short sequence of archival images, present-day photos, or brief video clips.
+          </p>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
+            <svg viewBox="0 0 720 520" role="img" aria-labelledby="illustrationTitle illustrationDesc">
+              <title id="illustrationTitle">Pearl button illustration placeholder</title>
+              <desc id="illustrationDesc">A transparent-background illustration of a mussel shell, pearl buttons, and river waves.</desc>
+              <path d="M84 386 C162 312 202 196 352 178 C511 158 612 246 652 374 C552 446 415 474 276 448 C195 433 130 412 84 386 Z" fill="#f0d9b5" stroke="#01205C" stroke-width="7"/>
+              <path d="M126 374 C246 342 350 272 456 194" fill="none" stroke="#a85f3f" stroke-width="6" stroke-linecap="round"/>
+              <path d="M164 400 C286 370 410 308 574 286" fill="none" stroke="#01205C" stroke-width="5" stroke-linecap="round" opacity="0.48"/>
+              <circle cx="420" cy="338" r="43" fill="#fff8ec" stroke="#01205C" stroke-width="6"/>
+              <circle cx="420" cy="338" r="9" fill="#01205C" opacity="0.78"/>
+              <circle cx="502" cy="378" r="31" fill="#fff8ec" stroke="#01205C" stroke-width="5"/>
+              <circle cx="502" cy="378" r="7" fill="#01205C" opacity="0.78"/>
+              <path d="M100 118 C170 84 238 84 306 118 S442 152 514 118 S626 84 686 118" fill="none" stroke="#2f7f9f" stroke-width="16" stroke-linecap="round" opacity="0.75"/>
+              <path d="M42 158 C112 124 180 124 248 158 S384 192 456 158 S568 124 668 158" fill="none" stroke="#a9d6e3" stroke-width="18" stroke-linecap="round" opacity="0.9"/>
+            </svg>
+            <a class="story-button" href="#illustration-story">See the related story</a>
+          </figure>
+        </div>
+      </article> -->
+
+
+      <small style="display:block;margin-bottom:0.5rem"><b>Illustration Photo Credits:</b> Norbert F. Beckey Bridge - Chris Light, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons, Xi Jinping - Kremlin.ru, CC BY 4.0 <https://creativecommons.org/licenses/by/4.0>, via Wikimedia Commons, Alexander Clark - Simmons, William J., Public domain, via Wikimedia Commons, Clammers - George Lefevre, Public domain, via Wikimedia Commons, Melons - Wellcome Collection, CC BY 4.0 <https://creativecommons.org/licenses/by/4.0>, via Wikimedia Commons </small>
+      <small><b>AI Disclaimer:</b> This page's custom code was built with the help of AI. Illustrations credited above had AI-powered image style transfer applied to photographs.</small>
+
+    </div>
   </main>
 
-
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
   <script>
-    const timelineColumn = document.querySelector("#timelineColumn");
+    const timelineScroll = document.querySelector("#timelineScroll");
     const timelineItems = Array.from(document.querySelectorAll(".timeline-item"));
-    const mediaPanels = Array.from(document.querySelectorAll(".media-panel"));
     const riverSvg = document.querySelector("#riverSvg");
     const riverBase = document.querySelector("#riverBase");
     const riverProgress = document.querySelector("#riverProgress");
 
-    function setActiveItem(activeItem) {
-      const mediaId = activeItem.dataset.media;
+    const riverSettings = {
+      amplitude: 12,
+      waveLength: 360,
+      pointGap: 14
+    };
 
+    function riverXAtY(y, svgWidth) {
+      const centerX = svgWidth / 2;
+      return centerX + Math.sin((y / riverSettings.waveLength) * Math.PI * 2) * riverSettings.amplitude;
+    }
+
+    function setActiveItem(activeItem) {
       timelineItems.forEach((item) => {
         item.classList.toggle("is-active", item === activeItem);
       });
-
-      mediaPanels.forEach((panel) => {
-        const isActive = panel.id === mediaId;
-        panel.classList.toggle("is-active", isActive);
-
-        const video = panel.querySelector("video");
-        if (video) {
-          if (isActive) {
-            video.play().catch(() => {});
-          } else {
-            video.pause();
-          }
-        }
-      });
     }
 
-    const itemObserver = new IntersectionObserver(
-      (entries) => {
-        const visibleEntries = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+    let itemObserver;
 
-        if (visibleEntries.length > 0) {
-          setActiveItem(visibleEntries[0].target);
-        }
-      },
-      {
-        root: null,
-        threshold: [0.35, 0.5, 0.65],
-        rootMargin: "-20% 0px -20% 0px"
+    function createItemObserver() {
+      if (itemObserver) {
+        itemObserver.disconnect();
       }
-    );
 
-    timelineItems.forEach((item) => itemObserver.observe(item));
+      itemObserver = new IntersectionObserver(
+        (entries) => {
+          const visibleEntries = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+          if (visibleEntries.length > 0) {
+            setActiveItem(visibleEntries[0].target);
+          }
+        },
+        {
+          root: null,
+          threshold: [0.35, 0.5, 0.65],
+          rootMargin: "-20% 0px -20% 0px"
+        }
+      );
+
+      timelineItems.forEach((item) => itemObserver.observe(item));
+    }
+
+    createItemObserver();
 
     function buildRiverPath() {
-      const columnHeight = timelineColumn.offsetHeight;
+      const scrollHeight = timelineScroll.scrollHeight;
       const svgWidth = riverSvg.clientWidth;
-      const centerX = svgWidth / 2;
-      const amplitude = Math.min(15, svgWidth * 0.22);
-      const waveLength = 260;
-      const pointGap = 18;
 
-      riverSvg.setAttribute("viewBox", `0 0 ${svgWidth} ${columnHeight}`);
-      riverSvg.setAttribute("height", columnHeight);
+      riverSvg.setAttribute("viewBox", `0 0 ${svgWidth} ${scrollHeight}`);
+      riverSvg.setAttribute("height", scrollHeight);
+      riverSvg.style.height = `${scrollHeight}px`;
 
-      /*
-        This builds the river as one continuous sine-wave path.
-        The earlier version used repeated cubic curves, which could create subtle corners
-        where one curve segment handed off to the next.
-      */
       const points = [];
 
-      for (let y = 0; y <= columnHeight; y += pointGap) {
-        const x = centerX + Math.sin((y / waveLength) * Math.PI * 2) * amplitude;
-        points.push([x, y]);
+      for (let y = 0; y <= scrollHeight; y += riverSettings.pointGap) {
+        points.push([riverXAtY(y, svgWidth), y]);
       }
 
-      if (points[points.length - 1][1] < columnHeight) {
-        const y = columnHeight;
-        const x = centerX + Math.sin((y / waveLength) * Math.PI * 2) * amplitude;
-        points.push([x, y]);
+      if (points[points.length - 1][1] < scrollHeight) {
+        points.push([riverXAtY(scrollHeight, svgWidth), scrollHeight]);
       }
 
       let d = `M ${points[0][0]} ${points[0][1]}`;
@@ -572,18 +1136,47 @@
       const pathLength = riverProgress.getTotalLength();
       riverProgress.style.strokeDasharray = pathLength;
       riverProgress.style.strokeDashoffset = pathLength;
+
+      positionDotsOnRiver();
+    }
+
+    function positionDotsOnRiver() {
+      const svgWidth = riverSvg.clientWidth;
+      const timelineRect = timelineScroll.getBoundingClientRect();
+      const riverRect = riverSvg.getBoundingClientRect();
+      const riverLeftWithinScroll = riverRect.left - timelineRect.left;
+
+      timelineItems.forEach((item) => {
+        const dot = item.querySelector(".timeline-dot");
+        const textBlock = item.querySelector(".timeline-text");
+        if (!dot || !textBlock) return;
+
+        /*
+          The item is now a two-column row, so its height is often controlled
+          by the media on the right. Centering the dot in the whole item makes
+          it drift away from the blurb. Instead, anchor the dot to the vertical
+          center of the actual text block.
+        */
+        const textCenterY = item.offsetTop + textBlock.offsetTop + textBlock.offsetHeight / 2;
+        const dotXOnRiver = riverLeftWithinScroll + riverXAtY(textCenterY, svgWidth);
+        const dotXWithinItem = dotXOnRiver - item.offsetLeft;
+        const dotYWithinItem = textBlock.offsetTop + textBlock.offsetHeight / 2;
+
+        dot.style.left = `${dotXWithinItem}px`;
+        dot.style.top = `${dotYWithinItem}px`;
+      });
     }
 
     function updateRiverProgress() {
-      const columnRect = timelineColumn.getBoundingClientRect();
-      const totalScrollable = columnRect.height - window.innerHeight;
-      const scrolledThroughColumn = Math.min(
-        Math.max(-columnRect.top, 0),
-        Math.max(totalScrollable, 1)
-      );
-      const progress = scrolledThroughColumn / Math.max(totalScrollable, 1);
       const pathLength = riverProgress.getTotalLength();
+      const rect = timelineScroll.getBoundingClientRect();
+      const scrollableDistance = rect.height - window.innerHeight;
+      const scrolledThroughTimeline = Math.min(
+        Math.max(-rect.top, 0),
+        Math.max(scrollableDistance, 1)
+      );
 
+      const progress = scrolledThroughTimeline / Math.max(scrollableDistance, 1);
       riverProgress.style.strokeDashoffset = pathLength * (1 - progress);
     }
 
@@ -592,9 +1185,110 @@
       updateRiverProgress();
     }
 
-    window.addEventListener("load", refreshRiver);
-    window.addEventListener("resize", refreshRiver);
-    window.addEventListener("scroll", updateRiverProgress, { passive: true });
+    function launchFullscreen(element) {
+      if (!element) return;
+
+      const requestFullscreen =
+        element.requestFullscreen ||
+        element.webkitRequestFullscreen ||
+        element.msRequestFullscreen;
+
+      if (requestFullscreen) {
+        requestFullscreen.call(element).catch?.(() => {});
+      }
+    }
+
+    function setupVideoFullscreen() {
+      document.querySelectorAll("video").forEach((video) => {
+        video.addEventListener("play", () => {
+          launchFullscreen(video);
+        });
+      });
+
+      document.querySelectorAll("iframe[src*='youtube.com'], iframe[src*='youtu.be']").forEach((iframe) => {
+        iframe.setAttribute("allowfullscreen", "");
+
+        const existingAllow = iframe.getAttribute("allow") || "";
+        if (!existingAllow.includes("fullscreen")) {
+          iframe.setAttribute("allow", `${existingAllow}; fullscreen`.trim());
+        }
+
+        iframe.addEventListener("click", () => {
+          launchFullscreen(iframe);
+        });
+      });
+    }
+
+
+    function setupSlideshows() {
+      document.querySelectorAll("[data-slideshow]").forEach((slideshow) => {
+        const slides = Array.from(slideshow.querySelectorAll(".slide"));
+        const prevButton = slideshow.querySelector("[data-slide-prev]");
+        const nextButton = slideshow.querySelector("[data-slide-next]");
+        let currentIndex = 0;
+
+        function showSlide(index) {
+          currentIndex = (index + slides.length) % slides.length;
+          slides.forEach((slide, slideIndex) => {
+            const isCurrent = slideIndex === currentIndex;
+            slide.classList.toggle("is-current", isCurrent);
+
+            const video = slide.querySelector("video");
+            if (video && !isCurrent) {
+              video.pause();
+            }
+          });
+        }
+
+        prevButton?.addEventListener("click", () => showSlide(currentIndex - 1));
+        nextButton?.addEventListener("click", () => showSlide(currentIndex + 1));
+      });
+    }
+
+    let panoramaViewer;
+
+    function setupPanoramaViewer() {
+      const panoramaElement = document.querySelector("#muscatinePanorama");
+      if (!panoramaElement || typeof pannellum === "undefined") return;
+
+      panoramaViewer = pannellum.viewer("muscatinePanorama", {
+        type: "equirectangular",
+        panorama: "https://pannellum.org/images/alma.jpg",
+        autoLoad: true,
+        showControls: true,
+        showFullscreenCtrl: true,
+        compass: false,
+        hfov: 100,
+        pitch: 0,
+        yaw: 0,
+        preview: "https://pannellum.org/images/alma.jpg"
+      });
+
+      document.querySelector("#panoramaFullscreenButton")?.addEventListener("click", () => {
+        if (panoramaViewer && typeof panoramaViewer.toggleFullscreen === "function") {
+          panoramaViewer.toggleFullscreen();
+        } else {
+          launchFullscreen(panoramaElement);
+        }
+      });
+    }
+
+    window.addEventListener("load", () => {
+      setupVideoFullscreen();
+      setupSlideshows();
+      setupPanoramaViewer();
+      refreshRiver();
+    });
+
+    window.addEventListener("resize", () => {
+      createItemObserver();
+      refreshRiver();
+    });
+
+    window.addEventListener("scroll", () => {
+      updateRiverProgress();
+      positionDotsOnRiver();
+    }, { passive: true });
 
     refreshRiver();
   </script>
