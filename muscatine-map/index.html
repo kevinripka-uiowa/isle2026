@@ -88,16 +88,17 @@
       outline: none;
     }
 
-    /* .story-marker img {
+    .story-marker img {
       width: 100%;
       height: 100%;
       display: block;
       object-fit: contain;
       margin: 0;
       transition: transform 160ms ease;
+      pointer-events: none;
     }
 
-    .story-marker:hover img,
+    /* .story-marker:hover img,
     .story-marker:focus-visible img {
       transform: translateY(-3px);
     } */
@@ -157,6 +158,50 @@
 
     .story-button:hover { opacity: 0.9 }
 
+    .story-annotation {
+      position: absolute;
+      z-index: 20;
+      width: min(330px, calc(100vw - 24px));
+      max-height: calc(100% - 24px);
+      background: var(--paper);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: auto;
+    }
+
+    .story-annotation.hidden {
+      display: none;
+    }
+
+    .story-annotation .popup-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #ddd;
+    }
+
+    .annotation-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      background: rgba(0, 0, 0, 0.45);
+      color: white;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .annotation-close:hover,
+    .annotation-close:focus-visible {
+      background: rgba(0, 0, 0, 0.65);
+      outline: none;
+    }
+
     .inset-panel {
       position: absolute;
       right: 18px;
@@ -209,6 +254,11 @@
       .inset-panel { right: 12px; bottom: 72px; width: 190px; }
       #inset-map { height: 118px; }
       .reset-button { left: 12px; bottom: 22px; }
+
+      .story-annotation {
+        width: calc(100vw - 24px);
+        max-height: calc(100% - 24px);
+      }
     }
   </style>
 </head>
@@ -221,6 +271,12 @@
 
     <main class="map-frame">
       <div id="map" aria-label="Map of Muscatine, Iowa with annotated story points"></div>
+
+      <section id="story-annotation" class="story-annotation hidden" aria-live="polite">
+        <button id="close-annotation" class="annotation-close" type="button" aria-label="Close annotation">×</button>
+        <div id="annotation-content"></div>
+      </section>
+
       <!-- <button class="reset-button" id="reset-map" type="button">Reset map</button> -->
       <aside class="inset-panel" aria-label="Inset locator map showing Muscatine in Iowa">
         <h2>Location in Iowa</h2>
@@ -296,8 +352,8 @@
       },
       {
         id: "melons",
-        title: "Mairet Farm",
-        shortTitle: "Mairet Farm",
+        title: "Muscatine Island",
+        shortTitle: "Muscatine Island",
         text: "Muscatine's island is a segment of the Mississippi floodplain with ideal soil for growing produce. Mairet is one of the family farms responsible for maintaining Muscatine's legacy of the World's Finest Melons.",
         image: "images/farm.jpeg",
         alt: "Fourth story location in Muscatine",
@@ -317,11 +373,18 @@
       style: "mapbox://styles/mapbox/standard",
       center: MUSCATINE_CENTER,
       zoom: 11.2,
-      projection: "mercator"
+      projection: "mercator",
+      interactive: false
     });
-    // map.dragPan.disable();
 
-    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: false }), "top-left");
+    // The map is intentionally static for iframe display.
+    // It cannot be panned, zoomed, rotated, or tilted by the viewer.
+    map.dragPan.disable();
+    map.scrollZoom.disable();
+    map.boxZoom.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
+    map.keyboard.disable();
 
     map.on("load", () => {
       addMuscatineBoundary(map);
@@ -375,8 +438,29 @@
       clearTimeout(resizeTimer);
 
       resizeTimer = setTimeout(() => {
-        fitMapToMuscatine();
+        fitMapToMuscatine(0);
+        requestAnimationFrame(positionAnnotation);
       }, 150);
+    });
+
+    let activeAnnotationPoint = null;
+
+    const storyAnnotation = document.querySelector("#story-annotation");
+    const annotationContent = document.querySelector("#annotation-content");
+    const closeAnnotationButton = document.querySelector("#close-annotation");
+
+    closeAnnotationButton.addEventListener("click", () => {
+      closeAnnotation();
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeAnnotation();
+      }
+    });
+
+    map.on("move", () => {
+      positionAnnotation();
     });
 
     function addStoryMarkers() {
@@ -389,30 +473,89 @@
           <img src="${escapeAttribute(point.icon)}" alt="" aria-hidden="true">
         `;
 
-        const popupAnchor = point.popupAnchor || getPopupAnchor(point.coordinates);
-
-        const popup = new mapboxgl.Popup({
-          anchor: popupAnchor,
-          offset: 18,
-          closeButton: true,
-          closeOnClick: true,
-          maxWidth: "330px"
-        }).setHTML(`
-          <article class="popup-card">
-            <img src="${point.image}" alt="${escapeHTML(point.alt || point.title)}">
-            <div class="popup-body">
-              <h2>${escapeHTML(point.title)}</h2>
-              <p>${escapeHTML(point.text)}</p>
-              <a class="story-button" style="background-color:${escapeAttribute(point.color)}" href="${escapeAttribute(point.storyUrl)}">Go to story</a>
-            </div>
-          </article>
-        `);
+        markerElement.addEventListener("click", () => {
+          openAnnotation(point);
+        });
 
         new mapboxgl.Marker({ element: markerElement, anchor: "bottom" })
           .setLngLat(point.coordinates)
-          .setPopup(popup)
           .addTo(map);
       });
+    }
+
+    function openAnnotation(point) {
+      activeAnnotationPoint = point;
+
+      annotationContent.innerHTML = `
+        <article class="popup-card">
+          <img src="${escapeAttribute(point.image)}" alt="${escapeHTML(point.alt || point.title)}">
+          <div class="popup-body">
+            <h2>${escapeHTML(point.title)}</h2>
+            <p>${escapeHTML(point.text)}</p>
+            <a class="story-button" style="background-color:${escapeAttribute(point.color)}" href="${escapeAttribute(point.storyUrl)}">Go to story</a>
+          </div>
+        </article>
+      `;
+
+      storyAnnotation.classList.remove("hidden");
+
+      const annotationImage = annotationContent.querySelector("img");
+      annotationImage.addEventListener("load", positionAnnotation, { once: true });
+
+      positionAnnotation();
+      closeAnnotationButton.focus({ preventScroll: true });
+    }
+
+    function closeAnnotation() {
+      activeAnnotationPoint = null;
+      storyAnnotation.classList.add("hidden");
+    }
+
+    function positionAnnotation() {
+      if (!activeAnnotationPoint || storyAnnotation.classList.contains("hidden")) return;
+
+      const mapFrame = document.querySelector(".map-frame");
+      const markerScreenPosition = map.project(activeAnnotationPoint.coordinates);
+
+      const gap = 18;
+      const edgePadding = 12;
+      const panelWidth = storyAnnotation.offsetWidth;
+      const panelHeight = storyAnnotation.offsetHeight;
+      const frameWidth = mapFrame.clientWidth;
+      const frameHeight = mapFrame.clientHeight;
+
+      let preferredAnchor = activeAnnotationPoint.popupAnchor || getPopupAnchor(activeAnnotationPoint.coordinates);
+      let left;
+
+      // "left" means the popup's left edge attaches near the marker,
+      // so the popup opens to the right of the marker.
+      if (preferredAnchor === "left") {
+        left = markerScreenPosition.x + gap;
+
+        if (left + panelWidth > frameWidth - edgePadding) {
+          left = markerScreenPosition.x - panelWidth - gap;
+        }
+      } else {
+        left = markerScreenPosition.x - panelWidth - gap;
+
+        if (left < edgePadding) {
+          left = markerScreenPosition.x + gap;
+        }
+      }
+
+      let top = markerScreenPosition.y - panelHeight / 2;
+
+      // Keep the annotation fully inside the iframe or browser viewport.
+      left = clamp(left, edgePadding, frameWidth - panelWidth - edgePadding);
+      top = clamp(top, edgePadding, frameHeight - panelHeight - edgePadding);
+
+      storyAnnotation.style.left = `${left}px`;
+      storyAnnotation.style.top = `${top}px`;
+    }
+
+    function clamp(value, min, max) {
+      if (max < min) return min;
+      return Math.min(Math.max(value, min), max);
     }
 
     function getPopupAnchor(coordinates) {
