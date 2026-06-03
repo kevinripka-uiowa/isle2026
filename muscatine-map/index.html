@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Muscatine Story Map</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+  <style>
+    :root {
+      --paper: #fffdf4;
+      --ink: #263268;
+      --muted: #5d5d5d;
+      --border: #ded6c7;
+      --accent: #9d3535;
+      --accent-dark: #612020;
+      --water: #8eb8cf;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: #f3f0e8;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      padding: 18px clamp(16px, 4vw, 44px);
+      background: var(--paper);
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      line-height: 1.1;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.98rem;
+    }
+
+    .map-frame {
+      position: relative;
+      /* min-height: 680px; */
+      height: calc(100vh - 88px);
+      width: 100%;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    #map { position: absolute; inset: 0; }
+
+    .mapboxgl-ctrl-logo,
+    .mapboxgl-ctrl-attrib { font-size: 11px; }
+
+    .story-marker {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--paper);
+      border: none;
+      box-shadow: 0 7px 18px rgba(0, 0, 0, 0.22);
+      cursor: pointer;
+      transition: box-shadow 160ms ease;
+      padding: 2px;
+    }
+
+    .story-marker:hover,
+    .story-marker:focus-visible {
+      box-shadow: 0 11px 22px rgba(0, 0, 0, 0.26);
+      outline: none;
+    }
+
+    /* .story-marker img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      margin: 0;
+      transition: transform 160ms ease;
+    }
+
+    .story-marker:hover img,
+    .story-marker:focus-visible img {
+      transform: translateY(-3px);
+    } */
+
+    .mapboxgl-popup { max-width: 330px !important; }
+    .mapboxgl-popup-content {
+      padding: 0;
+      border-radius: 0;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .mapboxgl-popup-close-button {
+      width: 32px;
+      height: 32px;
+      color: white;
+      font-size: 22px;
+      line-height: 28px;
+      z-index: 2;
+    }
+
+    .popup-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #ddd;
+    }
+
+    .popup-body { padding: 14px 16px 16px; }
+
+    .popup-card h2 {
+      margin: 0 26px 8px 0;
+      font-size: 1.1rem;
+      line-height: 1.15;
+    }
+
+    .popup-card p {
+      margin: 0 0 13px;
+      font-size: 0.95rem;
+      line-height: 1.42;
+    }
+
+    .story-button {
+      display: inline-block;
+      padding: 9px 12px;
+      background: var(--accent);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 999px;
+      outline: none;
+    }
+
+    .story-button:hover { opacity: 0.9 }
+
+    .inset-panel {
+      position: absolute;
+      right: 18px;
+      bottom: 34px;
+      width: min(260px, calc(100vw - 36px));
+      background: rgba(255, 253, 244, 0.96);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 10px;
+      z-index: 5;
+    }
+
+    .inset-panel h2 {
+      margin: 0 0 8px;
+      font-size: 0.92rem;
+      line-height: 1.1;
+    }
+
+    #inset-map {
+      width: 100%;
+      height: 155px;
+      background: #eef3f5;
+    }
+
+    .inset-caption {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.25;
+    }
+
+    .reset-button {
+      position: absolute;
+      left: 18px;
+      bottom: 34px;
+      z-index: 5;
+      border: 1px solid var(--border);
+      background: rgba(255, 253, 244, 0.96);
+      color: var(--ink);
+      padding: 10px 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.12);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .reset-button:hover { background: white; }
+
+    @media (max-width: 720px) {
+      .map-frame { min-height: 720px; height: calc(100vh - 96px); }
+      .inset-panel { right: 12px; bottom: 72px; width: 190px; }
+      #inset-map { height: 118px; }
+      .reset-button { left: 12px; bottom: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>Navigating the Narratives</h1>
+      <p>Click on the icons to see where these stories take place in Muscatine.</p>
+    </header>
+
+    <main class="map-frame">
+      <div id="map" aria-label="Map of Muscatine, Iowa with annotated story points"></div>
+      <!-- <button class="reset-button" id="reset-map" type="button">Reset map</button> -->
+      <aside class="inset-panel" aria-label="Inset locator map showing Muscatine in Iowa">
+        <h2>Location in Iowa</h2>
+        <div id="inset-map"></div>
+        <p class="inset-caption">The red box marks the area shown in the main map.</p>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const MAPBOX_TOKEN = "pk.eyJ1Ijoia3JpcGthLWlvd2EiLCJhIjoiY21wcG53a2lyMGRhZDJ4cHZibmMyeG5wbyJ9.N5Uz_H8P8NM0jckBmxKrrg";
+
+    const MUSCATINE_GEOJSON = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"fill":"#ff725b","fill-opacity":0.54,"stroke":"#888","stroke-opacity":0,"stroke-width":1,"stroke-dasharray":"100000","pattern":"solid","pattern-line-width":2,"pattern-line-gap":2,"size":48.48,"highlight":false,"title":"Muscatine","description":"","tooltip-enabled":false},"geometry":{"type":"MultiPolygon","coordinates":[[[[-91.05134010314941,41.413380612381644],[-91.05537414550781,41.411192019582614],[-91.05820655822754,41.40765149276584],[-91.05820655822754,41.40269443107465],[-91.05494499206543,41.39709314011597],[-91.05082511901855,41.39181332049452],[-91.05099678039551,41.38711263243965],[-91.05245590209961,41.384021583849886],[-91.05854988098145,41.38408598219425],[-91.05854988098145,41.384665564423784],[-91.06610298156738,41.384858757352305],[-91.06575965881348,41.38936642939922],[-91.07211112976074,41.38930203628459],[-91.0711669921875,41.392199663301255],[-91.07563018798828,41.391298193180546],[-91.07966423034668,41.391877711121765],[-91.08344078063965,41.38955960836037],[-91.08558654785156,41.39026792630705],[-91.12309455871582,41.359738863879784],[-91.15382194519043,41.36012539724527],[-91.15731877437125,41.358525],[-91.15734913611679,41.358525],[-91.1601734161377,41.36205802963667],[-91.161347,41.36205802963667],[-91.161347,41.362668462892096],[-91.16128921508789,41.36392618639255],[-91.15768432617188,41.3637973497174],[-91.15751266479492,41.37146268793953],[-91.16060256958008,41.37313734750734],[-91.15845680236816,41.3753916288469],[-91.15691184997559,41.37448992568591],[-91.1382007598877,41.3743611099282],[-91.13811492919922,41.377903450312914],[-91.11888885498047,41.377903450312914],[-91.11880302429199,41.38524514148733],[-91.10918998718262,41.38505194970679],[-91.10910415649414,41.392521613886316],[-91.09004974365234,41.392392833843616],[-91.08936309814453,41.453727619878606],[-91.0601806640625,41.45344720929587],[-91.0601806640625,41.45347030218727],[-91.05321121600787,41.4533802406878],[-91.0491943359375,41.45334164295883],[-91.0491943359375,41.453328333242695],[-91.04026794433594,41.453212983475225],[-91.04009628295898,41.46446972255933],[-91.03597640991211,41.464405403886445],[-91.03520393371582,41.46273309599809],[-91.03314399719238,41.46273309599809],[-91.03142738342285,41.460739134072526],[-91.03434562683105,41.46652788640523],[-91.0338306427002,41.46852167033026],[-91.02644920349121,41.468457355676804],[-91.02327346801758,41.47186594439361],[-91.02129936218262,41.475210045937814],[-91.02002090874848,41.478786],[-91.01760759747448,41.478786],[-91.00773811340332,41.47868258416966],[-91.0078239440918,41.47623896555069],[-91.00310325622559,41.47591742992623],[-91.00301742553711,41.47868258416966],[-90.99803924560547,41.47861827959687],[-90.997108,41.47665202658657],[-90.997108,41.476608607923225],[-91.0026741027832,41.46961500967791],[-91.00808143615723,41.46961500967791],[-91.00808143615723,41.47141576370299],[-91.01305961608887,41.47141576370299],[-91.01323127746582,41.46112506697207],[-91.0081672668457,41.46382653295959],[-91.00833892822266,41.45675102629116],[-91.01503372192383,41.45687967875713],[-91.01503372192383,41.453212983475225],[-91.01374626159668,41.453212983475225],[-91.01451873779297,41.449610414329186],[-91.01469039916992,41.44523559711962],[-91.01117134094238,41.44523559711962],[-91.00996971130371,41.44182560856203],[-91.01649284362793,41.44028140385504],[-91.01692199707031,41.442469016345115],[-91.01906776428223,41.442469016345115],[-91.0173511505127,41.441117852632516],[-91.01803779602051,41.43963797438235],[-91.02087020874023,41.440474431452884],[-91.02129936218262,41.42432247032701],[-91.02593421936035,41.42400067728789],[-91.03271484375,41.42161935923528],[-91.04129791259766,41.41762884673497],[-91.05134010314941,41.413380612381644]]],[[[-91.01228713989258,41.44092482694845],[-91.01134300231934,41.4380937176206],[-91.01546287536621,41.436871154958425],[-91.01675033569336,41.439251913636696],[-91.01228713989258,41.44092482694845]]]]}}]};
+    // -----------------------------------------------------------------------------
+    // STORY POINTS
+    // -----------------------------------------------------------------------------
+    // Students should edit this section.
+    //
+    // For each point:
+    // - title: The popup headline.
+    // - shortTitle: A short label used only for your own organization.
+    // - text: One short paragraph for the popup.
+    // - image: Path to the image shown in the popup.
+    // - alt: Alt text for the popup image.
+    // - storyUrl: Link for the “Go to story” button.
+    // - icon: Path to an SVG icon in your icons folder.
+    // - coordinates: [longitude, latitude]
+    // - popupAnchor: Optional. Use "left" to open the popup to the right of the marker,
+    //   or "right" to open the popup to the left of the marker.
+    //   Leave it out to choose automatically based on the marker location.
+    //
+    // Example folder structure:
+    // index.html
+    // images/button-factory.jpg
+    // icons/factory.svg
+
+    const STORY_POINTS = [
+      {
+        id: "button-factory",
+        title: "National Pearl Button Museum",
+        shortTitle: "National Pearl Button Museum",
+        text: "Muscatine was known as the Pearl Button Capital of the World for its massive production of mussel-shell buttons; today, the town proudly preserves its history at the National Pearl Button Museum.",
+        image: "images/pearl.jpg",
+        alt: "Historic button factory site in Muscatine",
+        storyUrl: "#story-button-factory",
+        color: "#b1e1ed",
+        icon: "icons/button.svg",
+        coordinates: [-91.04632948797993,41.4212417204541]
+      },
+      {
+        id: "boxing",
+        title: "Muscatine Boxing Club",
+        shortTitle: "Muscatine Boxing Club",
+        text: "Since 1971, the Williams family has welcomed the Muscatine population into their family-run gym. Generations have gathered here to build strength and community.",
+        image: "images/boxing.JPG",
+        alt: "Mississippi Riverfront in Muscatine",
+        storyUrl: "#story-riverfront",
+        color: "#cca7ce",
+        icon: "icons/boxing.svg",
+        coordinates: [-91.06359598798065,41.40755199059954]
+      },
+      {
+        id: "china",
+        title: "Sino-US House",
+        shortTitle: "Downtown",
+        text: "When China's now-President Xi Jinping visited Muscatine in 1985, he was hosted at this house, which today serves as a symbol of this unique, longstanding friendship and diplomatic connection.",
+        image: "images/china.png",
+        alt: "Downtown Muscatine streetscape",
+        storyUrl: "#story-downtown",
+        color: "#f37e7e",        
+        icon: "icons/globe.svg",
+        coordinates: [-91.0761678168149,41.4438839887452]
+      },
+      {
+        id: "melons",
+        title: "Mairet Farm",
+        shortTitle: "Mairet Farm",
+        text: "Muscatine's island is a segment of the Mississippi floodplain with ideal soil for growing produce. Mairet is one of the family farms responsible for maintaining Muscatine's legacy of the World's Finest Melons.",
+        image: "images/farm.jpeg",
+        alt: "Fourth story location in Muscatine",
+        storyUrl: "#story-location-four",
+        color: "#dfe036",
+        icon: "icons/melon.svg",
+        coordinates: [-91.12733316099936,41.37386820336031]
+      }
+    ];
+    const MUSCATINE_BOUNDS = [[-91.161347, 41.358525], [-90.997108, 41.478786]];
+    const MUSCATINE_CENTER = [-91.0792275, 41.4186555];
+
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+
+    const map = new mapboxgl.Map({
+      container: "map",
+      style: "mapbox://styles/mapbox/standard",
+      center: MUSCATINE_CENTER,
+      zoom: 11.2,
+      projection: "mercator"
+    });
+    // map.dragPan.disable();
+
+    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: false }), "top-left");
+
+    map.on("load", () => {
+      addMuscatineBoundary(map);
+      addStoryMarkers();
+      fitMapToMuscatine(0);
+    });
+
+    // document.querySelector("#reset-map").addEventListener("click", () => {
+    //   map.fitBounds(MUSCATINE_BOUNDS, { padding: 72, duration: 700 });
+    // });
+
+    function addMuscatineBoundary(targetMap) {
+      if (targetMap.getSource("muscatine-boundary")) return;
+
+      targetMap.addSource("muscatine-boundary", {
+        type: "geojson",
+        data: MUSCATINE_GEOJSON
+      });
+
+      targetMap.addLayer({
+        id: "muscatine-fill",
+        type: "fill",
+        source: "muscatine-boundary",
+        paint: {
+          "fill-color": "#5da262",
+          "fill-opacity": 0.3
+        }
+      });
+
+      targetMap.addLayer({
+        id: "muscatine-outline",
+        type: "line",
+        source: "muscatine-boundary",
+        paint: {
+          "line-color": "#6f6352",
+          "line-width": 2.2
+        }
+      });
+    }
+
+    function fitMapToMuscatine(duration = 700) {
+      map.fitBounds(MUSCATINE_BOUNDS, {
+        padding: 72,
+        duration
+      });
+    }
+
+    let resizeTimer;
+
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+
+      resizeTimer = setTimeout(() => {
+        fitMapToMuscatine();
+      }, 150);
+    });
+
+    function addStoryMarkers() {
+      STORY_POINTS.forEach((point) => {
+        const markerElement = document.createElement("button");
+        markerElement.className = "story-marker";
+        markerElement.type = "button";
+        markerElement.setAttribute("aria-label", point.title);
+        markerElement.innerHTML = `
+          <img src="${escapeAttribute(point.icon)}" alt="" aria-hidden="true">
+        `;
+
+        const popupAnchor = point.popupAnchor || getPopupAnchor(point.coordinates);
+
+        const popup = new mapboxgl.Popup({
+          anchor: popupAnchor,
+          offset: 18,
+          closeButton: true,
+          closeOnClick: true,
+          maxWidth: "330px"
+        }).setHTML(`
+          <article class="popup-card">
+            <img src="${point.image}" alt="${escapeHTML(point.alt || point.title)}">
+            <div class="popup-body">
+              <h2>${escapeHTML(point.title)}</h2>
+              <p>${escapeHTML(point.text)}</p>
+              <a class="story-button" style="background-color:${escapeAttribute(point.color)}" href="${escapeAttribute(point.storyUrl)}">Go to story</a>
+            </div>
+          </article>
+        `);
+
+        new mapboxgl.Marker({ element: markerElement, anchor: "bottom" })
+          .setLngLat(point.coordinates)
+          .setPopup(popup)
+          .addTo(map);
+      });
+    }
+
+    function getPopupAnchor(coordinates) {
+      // Mapbox anchors describe the side of the popup attached to the marker.
+      // "left" means the popup opens to the right of the marker.
+      // "right" means the popup opens to the left of the marker.
+      const markerLongitude = coordinates[0];
+      const mapCenterLongitude = MUSCATINE_CENTER[0];
+
+      return markerLongitude < mapCenterLongitude ? "left" : "right";
+    }
+
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttribute(value) {
+      return escapeHTML(value).replaceAll("`", "&#096;");
+    }
+
+    const insetMap = new mapboxgl.Map({
+      container: "inset-map",
+      style: "mapbox://styles/mapbox/light-v11",
+      center: [-93.55, 42.05],
+      zoom: 4,
+      interactive: false,
+      attributionControl: false,
+      projection: "mercator"
+    });
+
+    insetMap.on("load", () => {
+      insetMap.addSource("muscatine-focus-box", {
+        type: "geojson",
+        data: bboxToPolygon(MUSCATINE_BOUNDS)
+      });
+
+      insetMap.addLayer({
+        id: "focus-box-fill",
+        type: "fill",
+        source: "muscatine-focus-box",
+        paint: {
+          "fill-color": "#9d3535",
+          "fill-opacity": 0.28
+        }
+      });
+
+      insetMap.addLayer({
+        id: "focus-box-outline",
+        type: "line",
+        source: "muscatine-focus-box",
+        paint: {
+          "line-color": "#9d3535",
+          "line-width": 2
+        }
+      });
+
+      insetMap.addSource("muscatine-center", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [{
+            type: "Feature",
+            properties: { name: "Muscatine" },
+            geometry: { type: "Point", coordinates: MUSCATINE_CENTER }
+          }]
+        }
+      });
+
+      insetMap.addLayer({
+        id: "muscatine-dot",
+        type: "circle",
+        source: "muscatine-center",
+        paint: {
+          "circle-radius": 4,
+          "circle-color": "#9d3535",
+          "circle-stroke-color": "#fffdf4",
+          "circle-stroke-width": 1.5
+        }
+      });
+
+      insetMap.addLayer({
+        id: "muscatine-label",
+        type: "symbol",
+        source: "muscatine-center",
+        layout: {
+          "text-field": "Muscatine",
+          "text-size": 11,
+          "text-offset": [-1.4, 0],
+          "text-anchor": "right"
+        },
+        paint: {
+          "text-color": "#202020",
+          "text-halo-color": "#fffdf4",
+          "text-halo-width": 1.2
+        }
+      });
+    });
+
+    function bboxToPolygon(bounds) {
+      const [[west, south], [east, north]] = bounds;
+      return {
+        type: "FeatureCollection",
+        features: [{
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [[
+              [west, south],
+              [east, south],
+              [east, north],
+              [west, north],
+              [west, south]
+            ]]
+          }
+        }]
+      };
+    }
+  </script>
+</body>
+</html>
