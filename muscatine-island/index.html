@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Muscatine Story Map</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.15.0/mapbox-gl.js"></script>
+  <style>
+    :root {
+      --paper: #fffdf4;
+      --ink: #202020;
+      --muted: #5d5d5d;
+      --border: #ded6c7;
+      --accent: #9d3535;
+      --accent-dark: #612020;
+      --water: #8eb8cf;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: #f3f0e8;
+    }
+
+    .page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      padding: 18px clamp(16px, 4vw, 44px);
+      background: var(--paper);
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      line-height: 1.1;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .map-frame {
+      position: relative;
+      /* min-height: 680px; */
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    #map { position: absolute; inset: 0; }
+
+    .mapboxgl-ctrl-logo,
+    .mapboxgl-ctrl-attrib { font-size: 11px; }
+
+    .story-marker {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--paper);
+      border: none;
+      box-shadow: 0 7px 18px rgba(0, 0, 0, 0.22);
+      cursor: pointer;
+      transition: box-shadow 160ms ease;
+      padding: 2px;
+    }
+
+    .story-marker:hover,
+    .story-marker:focus-visible {
+      box-shadow: 0 11px 22px rgba(0, 0, 0, 0.26);
+      outline: none;
+    }
+
+    .story-marker img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      margin: 0;
+      transition: transform 160ms ease;
+    }
+/* 
+    .story-marker:hover img,
+    .story-marker:focus-visible img {
+      transform: translateY(-3px);
+    } */
+
+    .mapboxgl-popup { max-width: 330px !important; }
+    .mapboxgl-popup-content {
+      padding: 0;
+      border-radius: 0;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .mapboxgl-popup-close-button {
+      width: 32px;
+      height: 32px;
+      color: white;
+      font-size: 22px;
+      line-height: 28px;
+      z-index: 2;
+    }
+
+    .popup-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #ddd;
+    }
+
+    .popup-body { padding: 14px 16px 16px; }
+
+    .popup-card h2 {
+      margin: 0 26px 8px 0;
+      font-size: 1.1rem;
+      line-height: 1.15;
+    }
+
+    .popup-card p {
+      margin: 0 0 13px;
+      color: #333;
+      font-size: 0.95rem;
+      line-height: 1.42;
+    }
+
+    .story-button {
+      display: inline-block;
+      padding: 9px 12px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 999px;
+    }
+
+    .story-button:hover { background: var(--accent-dark); }
+
+
+    .story-annotation {
+      position: absolute;
+      z-index: 20;
+      width: min(330px, calc(100vw - 24px));
+      max-height: calc(100% - 24px);
+      background: var(--paper);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: auto;
+    }
+
+    .story-annotation.hidden {
+      display: none;
+    }
+
+    .story-annotation .popup-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: #ddd;
+    }
+
+    .annotation-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      background: rgba(0, 0, 0, 0.45);
+      color: white;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .annotation-close:hover,
+    .annotation-close:focus-visible {
+      background: rgba(0, 0, 0, 0.65);
+      outline: none;
+    }
+
+    .inset-panel {
+      position: absolute;
+      right: 18px;
+      bottom: 34px;
+      width: min(260px, calc(100vw - 36px));
+      background: rgba(255, 253, 244, 0.96);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 10px;
+      z-index: 5;
+    }
+
+    .inset-panel h2 {
+      margin: 0 0 8px;
+      font-size: 0.92rem;
+      line-height: 1.1;
+    }
+
+    #inset-map {
+      width: 100%;
+      height: 155px;
+      background: #eef3f5;
+    }
+
+    .inset-caption {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.25;
+    }
+
+    .reset-button {
+      position: absolute;
+      left: 18px;
+      bottom: 34px;
+      z-index: 5;
+      border: 1px solid var(--border);
+      background: rgba(255, 253, 244, 0.96);
+      color: var(--ink);
+      padding: 10px 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.12);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .reset-button:hover { background: white; }
+
+    @media (max-width: 720px) {
+      .map-frame { min-height: 720px; height: calc(100vh - 96px); }
+      .inset-panel { right: 12px; bottom: 72px; width: 190px; }
+      #inset-map { height: 118px; }
+      .reset-button { left: 12px; bottom: 22px; }
+
+      .story-annotation {
+        width: calc(100vw - 24px);
+        max-height: calc(100% - 24px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <main class="map-frame">
+      <div id="map" aria-label="Map of Muscatine, Iowa with annotated story points"></div>
+
+      <section id="story-annotation" class="story-annotation hidden" aria-live="polite">
+        <button id="close-annotation" class="annotation-close" type="button" aria-label="Close annotation">×</button>
+        <div id="annotation-content"></div>
+      </section>
+
+      <!-- <button class="reset-button" id="reset-map" type="button">Reset map</button> -->
+      <aside class="inset-panel" aria-label="Inset locator map showing Muscatine in Iowa">
+        <h2>Location in Iowa</h2>
+        <div id="inset-map"></div>
+        <p class="inset-caption">The red box marks the area shown in the main map.</p>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const MAPBOX_TOKEN = "pk.eyJ1Ijoia3JpcGthLWlvd2EiLCJhIjoiY21wcG53a2lyMGRhZDJ4cHZibmMyeG5wbyJ9.N5Uz_H8P8NM0jckBmxKrrg";
+
+    const MUSCATINE_GEOJSON = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"fill":"#ff725b","fill-opacity":0.54,"stroke":"#888","stroke-opacity":0,"stroke-width":1,"stroke-dasharray":"100000","pattern":"solid","pattern-line-width":2,"pattern-line-gap":2,"size":48.48,"highlight":false,"title":"Muscatine Island","description":"","tooltip-enabled":false},"geometry":{"type": "Polygon","coordinates":[[[-91.0579245,41.4116889],[-91.0613761,41.4119002],[-91.0647573,41.4121115],[-91.0663071,41.4121115],[-91.068843,41.4121115],[-91.070604,41.412587],[-91.0735626,41.412904],[-91.0760281,41.4126926],[-91.0780005,41.4120587],[-91.0794797,41.4113191],[-91.080959,41.4106851],[-91.0813112,41.4092058],[-91.0813112,41.4080964],[-91.0813112,41.4070925],[-91.0817339,41.4064585],[-91.0825792,41.4058245],[-91.083988,41.4056132],[-91.08589,41.4055603],[-91.0871579,41.4064585],[-91.0885668,41.4070925],[-91.0888485,41.4079379],[-91.0892712,41.4087832],[-91.0898347,41.4091002],[-91.0906096,41.409153],[-91.091314,41.4090473],[-91.0920889,41.4086775],[-91.0930046,41.4080435],[-91.0930046,41.407251],[-91.0934273,41.4065642],[-91.0941317,41.4060887],[-91.0951883,41.4055075],[-91.0959632,41.4055075],[-91.0966676,41.4055075],[-91.0981469,41.4055075],[-91.0999079,41.4054018],[-91.1008237,41.4050848],[-91.101669,41.4043451],[-91.102526,41.4037626],[-91.1028078,41.4027587],[-91.10316,41.402019],[-91.1040757,41.4015434],[-91.1045688,41.400698],[-91.1050619,41.3999583],[-91.1063299,41.3995356],[-91.1078092,41.3991657],[-91.109852,41.3987958],[-91.1109791,41.3981617],[-91.1115426,41.3974748],[-91.1125288,41.3968935],[-91.1137307,41.3961009],[-91.1147169,41.3958895],[-91.1151395,41.3953611],[-91.1160553,41.3950969],[-91.1170415,41.3950969],[-91.1178868,41.3954139],[-91.1186616,41.395731],[-91.119366,41.395731],[-91.1202114,41.3956781],[-91.1208453,41.395731],[-91.1216202,41.3959952],[-91.1221133,41.3964179],[-91.1234517,41.3967878],[-91.1244379,41.397052],[-91.1259876,41.397052],[-91.1276782,41.3968935],[-91.1287348,41.3963651],[-91.1292279,41.3957838],[-91.129721,41.3950969],[-91.1305663,41.3944627],[-91.1318343,41.3936172],[-91.1323274,41.3931945],[-91.1331023,41.3927717],[-91.1345616,41.3928937],[-91.1354774,41.3928937],[-91.136534,41.3928937],[-91.1373089,41.3925766],[-91.1378724,41.3919425],[-91.1379429,41.3910969],[-91.1379429,41.3903571],[-91.1379429,41.3895643],[-91.1380133,41.3885074],[-91.1385768,41.3881374],[-91.1397039,41.3873447],[-91.1399857,41.3863934],[-91.1393517,41.3858649],[-91.1382951,41.3856006],[-91.137802,41.3845965],[-91.1378516,41.3840835],[-91.1378516,41.3832907],[-91.1384856,41.3826565],[-91.1392605,41.3819694],[-91.1399649,41.381388],[-91.1405989,41.3812294],[-91.1413737,41.3814937],[-91.1424304,41.3818637],[-91.1435575,41.3817051],[-91.1446141,41.3810708],[-91.1454594,41.3801195],[-91.146516,41.3791152],[-91.1476872,41.3786824],[-91.1500822,41.3778895],[-91.1514206,41.3772552],[-91.1522659,41.3766209],[-91.1532521,41.3759338],[-91.1542383,41.3753523],[-91.1553654,41.3749823],[-91.157056,41.3746123],[-91.1580422,41.3742423],[-91.1589579,41.3737665],[-91.1603668,41.3732379],[-91.1614892,41.3731178],[-91.1623345,41.372272],[-91.1637434,41.3712676],[-91.1645182,41.3705804],[-91.1661384,41.3698403],[-91.167195,41.3695231],[-91.1681108,41.3688888],[-91.1688152,41.3681487],[-91.1692379,41.3670914],[-91.1693083,41.3658226],[-91.169097,41.3649238],[-91.1686743,41.364448],[-91.1682517,41.3640779],[-91.1677586,41.3635492],[-91.1674727,41.3627166],[-91.1674727,41.361765],[-91.1675432,41.360919],[-91.1676841,41.3598616],[-91.1682476,41.3585398],[-91.1677545,41.3577996],[-91.1669796,41.3566363],[-91.1661196,41.3555876],[-91.1653515,41.3549719],[-91.1642579,41.3543562],[-91.1634377,41.354239],[-91.1626175,41.3541803],[-91.1621261,41.3542952],[-91.1616168,41.3543941],[-91.1613663,41.3544817],[-91.1610435,41.3545827],[-91.1607679,41.3545625],[-91.1603226,41.354455],[-91.1597956,41.3540119],[-91.1599176,41.3529803],[-91.161315,41.3517958],[-91.1622614,41.3509522],[-91.1624536,41.3501862],[-91.1622022,41.3497422],[-91.1617192,41.3493158],[-91.1609188,41.3489109],[-91.157926,41.3475263],[-91.1573344,41.3471344],[-91.1574388,41.346416],[-91.1578912,41.3452664],[-91.1577701,41.3439963],[-91.1573873,41.3434607],[-91.1558387,41.3430165],[-91.1552645,41.3422196],[-91.1558387,41.3411615],[-91.1557691,41.3403777],[-91.1552993,41.3387316],[-91.1551535,41.33794],[-91.1542835,41.3369471],[-91.1519519,41.3351572],[-91.1504537,41.3331277],[-91.1491835,41.3320302],[-91.1480003,41.330985],[-91.1473565,41.329992],[-91.1471651,41.3293125],[-91.1471477,41.3285416],[-91.1466283,41.3271958],[-91.1465065,41.3258499],[-91.1460715,41.3244779],[-91.1452711,41.3237984],[-91.1443727,41.3230778],[-91.1439029,41.3220194],[-91.1444771,41.321366],[-91.1451557,41.3206865],[-91.1463994,41.320432],[-91.1474766,41.3202051],[-91.1482647,41.3202051],[-91.1495914,41.3198401],[-91.1511152,41.3193566],[-91.1513947,41.3189344],[-91.1519858,41.318668],[-91.1533125,41.3187962],[-91.1548363,41.318964],[-91.1560285,41.3185782],[-91.1563003,41.3180393],[-91.1561537,41.3167582],[-91.1559645,41.315897],[-91.1562428,41.3152531],[-91.1574118,41.3146009],[-91.1577903,41.3141326],[-91.1578585,41.3133812],[-91.1571681,41.3116662],[-91.1561339,41.3106466],[-91.1541485,41.3094982],[-91.15229,41.3074402],[-91.1505447,41.3052552],[-91.1505447,41.3042597],[-91.151482,41.3034342],[-91.1518375,41.3022203],[-91.1514466,41.3005961],[-91.1499599,41.2991878],[-91.1497659,41.2980466],[-91.1504447,41.2964682],[-91.1504447,41.2951813],[-91.1510264,41.2945742],[-91.1512527,41.2938214],[-91.1504123,41.2931172],[-91.1490226,41.2922916],[-91.1484731,41.2913445],[-91.1477352,41.2902496],[-91.1459166,41.2899598],[-91.1447594,41.2891316],[-91.1442083,41.2867714],[-91.1449798,41.2839555],[-91.1429959,41.2807668],[-91.143051,41.2790274],[-91.1438225,41.2774123],[-91.1454207,41.2761698],[-91.1454758,41.2743061],[-91.1442861,41.2730549],[-91.1413654,41.2720609],[-91.1403735,41.2706112],[-91.1405388,41.2697414],[-91.1400428,41.2689545],[-91.1385549,41.268913],[-91.1369568,41.2686645],[-91.1357995,41.2672562],[-91.1330992,41.2671734],[-91.131942,41.2663035],[-91.1292968,41.2667591],[-91.1283049,41.2652265],[-91.1279191,41.2636939],[-91.1256046,41.2627826],[-91.1240065,41.2613741],[-91.1254944,41.2595514],[-91.1262108,41.2582257],[-91.1244473,41.2570244],[-91.1230915,41.2557151],[-91.1231991,41.2544411],[-91.1230915,41.2539557],[-91.1224728,41.2534502],[-91.1207189,41.253889],[-91.1197092,41.2540359],[-91.1189437,41.2539502],[-91.118048,41.2534727],[-91.1171359,41.252836],[-91.1163542,41.2525299],[-91.1156537,41.2524418],[-91.1146533,41.2544201],[-91.1131107,41.2566513],[-91.1117189,41.2593652],[-91.1070574,41.266014],[-91.1025994,41.2716844],[-91.099452,41.2807031],[-91.0958895,41.2867965],[-91.0897354,41.2957293],[-91.0865348,41.3006243],[-91.0852325,41.3038213],[-91.0852751,41.3075965],[-91.0837438,41.3116443],[-91.081231,41.3167946],[-91.0797649,41.3192452],[-91.0774225,41.3207805],[-91.0756337,41.3238192],[-91.0749522,41.3262499],[-91.0748868,41.3321975],[-91.0753127,41.3374741],[-91.0747676,41.3413937],[-91.0723244,41.3475166],[-91.0716436,41.3559859],[-91.0701133,41.3633574],[-91.0662228,41.3729195],[-91.05922,41.379342],[-91.0558158,41.3829909],[-91.0536079,41.3869178],[-91.0545806,41.3927553],[-91.0581792,41.3983004],[-91.0605135,41.4027507],[-91.0610971,41.4073467],[-91.0588601,41.4094621],[-91.0579245,41.4116889]]]}}]};
+    // -----------------------------------------------------------------------------
+    // STORY POINTS
+    // -----------------------------------------------------------------------------
+    // Students should edit this section.
+    //
+    // For each point:
+    // - title: The popup headline.
+    // - shortTitle: A short label used only for your own organization.
+    // - text: One short paragraph for the popup.
+    // - image: Path to the image shown in the popup.
+    // - alt: Alt text for the popup image.
+    // - storyUrl: Link for the “Go to story” button.
+    // - icon: Path to an SVG icon in your icons folder.
+    // - coordinates: [longitude, latitude]
+    // - popupAnchor: Optional. Use "left" to open popup to the right of marker,
+    //   or "right" to open popup to the left of marker. Leave blank for automatic.
+    //
+    // Example folder structure:
+    // index.html
+    // images/button-factory.jpg
+    // icons/factory.svg
+
+    const STORY_POINTS = [
+      {
+        id: "mairet",
+        title: "Mairet Farms",
+        shortTitle: "Mairet Farms",
+        text: "Mairet Farms has been open since 2009 and has been growing produce and plants ever since along Highway 61.",
+        image: "img/mairet.jpg",
+        alt: "Mairet Farms",
+        icon: "img/melon.svg",
+        coordinates: [-91.12734388976506, 41.37376353957837]
+      },
+      {
+        id: "taylor",
+        title: "Taylor's Market",
+        shortTitle: "Taylor's Market",
+        text: "Taylors Market, operating since the 1980s, has since been growing plants and produce along Stewart Road.",
+        image: "img/taylor.jpg",
+        alt: "Taylor Farms",
+        icon: "img/melon.svg",
+        coordinates: [-91.09799470141014,41.3577664385623]
+      }
+    ];
+    const MUSCATINE_BOUNDS = [[-91.1693083, 41.2524418], [-91.0536079, 41.412904]];
+    const MUSCATINE_CENTER = [-91.1114581, 41.3326729];
+
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+
+    const map = new mapboxgl.Map({
+      container: "map",
+      style: "mapbox://styles/mapbox/standard",
+      center: MUSCATINE_CENTER,
+      zoom: 11.2,
+      projection: "mercator",
+      interactive: false
+    });
+
+    // The map is intentionally static for iframe display.
+    // It cannot be panned, zoomed, rotated, or tilted by the viewer.
+    map.dragPan.disable();
+    map.scrollZoom.disable();
+    map.boxZoom.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
+    map.keyboard.disable();
+
+    map.on("load", () => {
+      addMuscatineBoundary(map);
+      addStoryMarkers();
+      fitMapToMuscatine(0);
+    });
+
+    // document.querySelector("#reset-map").addEventListener("click", () => {
+    //   map.fitBounds(MUSCATINE_BOUNDS, { padding: 72, duration: 700 });
+    // });
+
+    function addMuscatineBoundary(targetMap) {
+      if (targetMap.getSource("muscatine-boundary")) return;
+
+      targetMap.addSource("muscatine-boundary", {
+        type: "geojson",
+        data: MUSCATINE_GEOJSON
+      });
+
+      targetMap.addLayer({
+        id: "muscatine-fill",
+        type: "fill",
+        source: "muscatine-boundary",
+        paint: {
+          "fill-color": "#5da262",
+          "fill-opacity": 0.3
+        }
+      });
+
+      targetMap.addLayer({
+        id: "muscatine-outline",
+        type: "line",
+        source: "muscatine-boundary",
+        paint: {
+          "line-color": "#6f6352",
+          "line-width": 2.2
+        }
+      });
+    }
+
+    function fitMapToMuscatine(duration = 700) {
+      map.fitBounds(MUSCATINE_BOUNDS, {
+        padding: 72,
+        duration
+      });
+    }
+
+    let resizeTimer;
+
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+
+      resizeTimer = setTimeout(() => {
+        fitMapToMuscatine(0);
+        requestAnimationFrame(positionAnnotation);
+      }, 150);
+    });
+
+    let activeAnnotationPoint = null;
+
+    const storyAnnotation = document.querySelector("#story-annotation");
+    const annotationContent = document.querySelector("#annotation-content");
+    const closeAnnotationButton = document.querySelector("#close-annotation");
+
+    closeAnnotationButton.addEventListener("click", () => {
+      closeAnnotation();
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeAnnotation();
+      }
+    });
+
+    map.on("move", () => {
+      positionAnnotation();
+    });
+
+    function addStoryMarkers() {
+      STORY_POINTS.forEach((point) => {
+        const markerElement = document.createElement("button");
+        markerElement.className = "story-marker";
+        markerElement.type = "button";
+        markerElement.setAttribute("aria-label", point.title);
+        markerElement.innerHTML = `
+          <img src="${escapeAttribute(point.icon)}" alt="" aria-hidden="true">
+        `;
+
+        markerElement.addEventListener("click", () => {
+          openAnnotation(point);
+        });
+
+        new mapboxgl.Marker({ element: markerElement, anchor: "bottom" })
+          .setLngLat(point.coordinates)
+          .addTo(map);
+      });
+    }
+
+    function openAnnotation(point) {
+      activeAnnotationPoint = point;
+
+      const buttonStyle = point.color
+        ? ` style="background-color:${escapeAttribute(point.color)}"`
+        : "";
+
+      annotationContent.innerHTML = `
+        <article class="popup-card">
+          <img src="${escapeAttribute(point.image)}" alt="${escapeHTML(point.alt || point.title)}">
+          <div class="popup-body">
+            <h2>${escapeHTML(point.title)}</h2>
+            <p>${escapeHTML(point.text)}</p>
+          </div>
+        </article>
+      `;
+
+      storyAnnotation.classList.remove("hidden");
+
+      const annotationImage = annotationContent.querySelector("img");
+      annotationImage.addEventListener("load", positionAnnotation, { once: true });
+
+      positionAnnotation();
+      closeAnnotationButton.focus({ preventScroll: true });
+    }
+
+    function closeAnnotation() {
+      activeAnnotationPoint = null;
+      storyAnnotation.classList.add("hidden");
+    }
+
+    function positionAnnotation() {
+      if (!activeAnnotationPoint || storyAnnotation.classList.contains("hidden")) return;
+
+      const mapFrame = document.querySelector(".map-frame");
+      const markerScreenPosition = map.project(activeAnnotationPoint.coordinates);
+
+      const gap = 18;
+      const edgePadding = 12;
+      const panelWidth = storyAnnotation.offsetWidth;
+      const panelHeight = storyAnnotation.offsetHeight;
+      const frameWidth = mapFrame.clientWidth;
+      const frameHeight = mapFrame.clientHeight;
+
+      let preferredAnchor = activeAnnotationPoint.popupAnchor || getPopupAnchor(activeAnnotationPoint.coordinates);
+      let left;
+
+      // "left" means the popup's left edge attaches near the marker,
+      // so the popup opens to the right of the marker.
+      if (preferredAnchor === "left") {
+        left = markerScreenPosition.x + gap;
+
+        if (left + panelWidth > frameWidth - edgePadding) {
+          left = markerScreenPosition.x - panelWidth - gap;
+        }
+      } else {
+        left = markerScreenPosition.x - panelWidth - gap;
+
+        if (left < edgePadding) {
+          left = markerScreenPosition.x + gap;
+        }
+      }
+
+      let top = markerScreenPosition.y - panelHeight / 2;
+
+      // Keep the annotation fully inside the iframe or browser viewport.
+      left = clamp(left, edgePadding, frameWidth - panelWidth - edgePadding);
+      top = clamp(top, edgePadding, frameHeight - panelHeight - edgePadding);
+
+      storyAnnotation.style.left = `${left}px`;
+      storyAnnotation.style.top = `${top}px`;
+    }
+
+    function clamp(value, min, max) {
+      if (max < min) return min;
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function getPopupAnchor(coordinates) {
+      // Mapbox anchors describe the side of the popup attached to the marker.
+      // "left" means the popup opens to the right of the marker.
+      // "right" means the popup opens to the left of the marker.
+      const markerLongitude = coordinates[0];
+      const mapCenterLongitude = MUSCATINE_CENTER[0];
+
+      return markerLongitude < mapCenterLongitude ? "left" : "right";
+    }
+
+    function escapeHTML(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttribute(value) {
+      return escapeHTML(value).replaceAll("`", "&#096;");
+    }
+
+    const insetMap = new mapboxgl.Map({
+      container: "inset-map",
+      style: "mapbox://styles/mapbox/light-v11",
+      center: [-93.55, 42.05],
+      zoom: 4,
+      interactive: false,
+      attributionControl: false,
+      projection: "mercator"
+    });
+
+    insetMap.on("load", () => {
+      insetMap.addSource("muscatine-focus-box", {
+        type: "geojson",
+        data: bboxToPolygon(MUSCATINE_BOUNDS)
+      });
+
+      insetMap.addLayer({
+        id: "focus-box-fill",
+        type: "fill",
+        source: "muscatine-focus-box",
+        paint: {
+          "fill-color": "#9d3535",
+          "fill-opacity": 0.28
+        }
+      });
+
+      insetMap.addLayer({
+        id: "focus-box-outline",
+        type: "line",
+        source: "muscatine-focus-box",
+        paint: {
+          "line-color": "#9d3535",
+          "line-width": 2
+        }
+      });
+
+      insetMap.addSource("muscatine-center", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: [{
+            type: "Feature",
+            properties: { name: "Muscatine" },
+            geometry: { type: "Point", coordinates: MUSCATINE_CENTER }
+          }]
+        }
+      });
+
+      insetMap.addLayer({
+        id: "muscatine-dot",
+        type: "circle",
+        source: "muscatine-center",
+        paint: {
+          "circle-radius": 4,
+          "circle-color": "#9d3535",
+          "circle-stroke-color": "#fffdf4",
+          "circle-stroke-width": 1.5
+        }
+      });
+
+      insetMap.addLayer({
+        id: "muscatine-label",
+        type: "symbol",
+        source: "muscatine-center",
+        layout: {
+          "text-field": "Muscatine",
+          "text-size": 11,
+          "text-offset": [-1.4, 0],
+          "text-anchor": "right"
+        },
+        paint: {
+          "text-color": "#202020",
+          "text-halo-color": "#fffdf4",
+          "text-halo-width": 1.2
+        }
+      });
+    });
+
+    function bboxToPolygon(bounds) {
+      const [[west, south], [east, north]] = bounds;
+      return {
+        type: "FeatureCollection",
+        features: [{
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [[
+              [west, south],
+              [east, south],
+              [east, north],
+              [west, north],
+              [west, south]
+            ]]
+          }
+        }]
+      };
+    }
+  </script>
+</body>
+</html>
