@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barry / McGowan / Sessler Family Tree</title>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #fffae6;
+      --feature-card: #fffae6;
+      --branch-card: #fffee9;
+      --ink: #01205C;
+      --muted: #a85f3f;
+      --line: #9b8f80;
+      --spouse-line: #7a4f2a;
+      --shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 30;
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 253, 248, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 999px;
+      padding: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .toolbar button {
+      border: 0;
+      border-radius: 999px;
+      background: #efefef;
+      color: var(--ink);
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .toolbar button:hover {
+      background: #e6e9ef;
+    }
+
+    .tree-viewport {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .tree-viewport:active {
+      cursor: grabbing;
+    }
+
+    #family-tree {
+      position: relative;
+      width: 2500px;
+      height: 2250px;
+      transform-origin: 0 0;
+    }
+
+    .tree-lines {
+      position: absolute;
+      inset: 0;
+      width: 2500px;
+      height: 2250px;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .tree-lines path {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .tree-lines .spouse {
+      stroke: var(--spouse-line);
+      stroke-width: 4;
+      stroke-dasharray: 8 8;
+    }
+
+    .person {
+      position: absolute;
+      width: 180px;
+      min-height: 86px;
+      border-radius: 18px;
+      padding: 16px 14px;
+      background: var(--card);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* .person.branch {
+      background: var(--branch-card);
+    } */
+
+    .person .name {
+      display: block;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.18;
+    }
+
+    .person .dates {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.2;
+    }
+
+    .featured-person {
+      position: absolute;
+      left: 980px;
+      top: -140px;
+      width: 280px;
+      border-radius: 24px;
+      padding: 18px;
+      background: var(--feature-card);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+      text-align: center;
+    }
+
+    .featured-person img {
+      width: 100%;
+      object-fit: contain;
+      display: block;
+      border-radius: 18px;
+      margin-bottom: 14px;
+      /* background: #dfd2c0; */
+      max-height: 200px;
+    }
+
+    .featured-person .name {
+      display: block;
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .featured-person .dates {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .featured-person .blurb {
+      margin: 12px 0 0;
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .instructions {
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 20;
+      max-width: 360px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 253, 248, 0.9);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .not-main-person {
+      opacity: 0.7;
+      background-color: #fff;
+    }
+
+    .not-main-person .dates {
+      display: none;
+    }
+
+    @media (max-width: 700px) {
+      .toolbar {
+        top: 10px;
+        left: 10px;
+      }
+
+      .instructions {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <div class="toolbar" aria-label="Family tree controls">
+      <button id="zoomIn" type="button">+</button>
+      <button id="zoomOut" type="button">−</button>
+      <button id="resetView" type="button">Reset</button>
+    </div>
+
+    <div class="tree-viewport">
+      <div id="family-tree">
+
+        <svg class="tree-lines" viewBox="0 0 2500 2250" aria-hidden="true">
+          <!-- Nicholas Barry + Alice (Potts) Barry -->
+          <path class="spouse" d="M 1260 120 H 1450" />
+
+          <!-- Nicholas and Alice to Level 2 children -->
+          <path d="M 1355 120 V 355" />
+          <path d="M 1355 355 H 330 V 460" />
+          <path d="M 1355 355 H 600 V 460" />
+          <path d="M 1355 355 H 870 V 460" />
+          <path d="M 1355 355 H 1140 V 460" />
+          <path d="M 1355 355 H 1410 V 460" />
+          <path d="M 1355 355 H 1680 V 460" />
+          <path d="M 1355 355 H 1950 V 460" />
+
+          <!-- Thomas Barry + Mary (Stockdale) Barry -->
+          <path class="spouse" d="M 2040 503 H 2160" />
+
+          <!-- Thomas and Mary to Level 3 children -->
+          <path d="M 2100 503 V 705" />
+          <path d="M 2100 705 H 1510 V 790" />
+          <path d="M 2100 705 H 1760 V 790" />
+          <path d="M 2100 705 H 2010 V 790" />
+          <path d="M 2100 705 H 2260 V 790" />
+
+          <!-- Albert Barry + Mary (Mathiason) Barry -->
+          <path class="spouse" d="M 1330 833 H 1420" />
+
+          <!-- Albert and Mary to Level 4 children -->
+          <path d="M 1375 833 V 1040" />
+          <path d="M 1375 1040 H 1250 V 1120" />
+          <path d="M 1375 1040 H 1500 V 1120" />
+
+          <!-- Alice Barry + Dale McGowan -->
+          <path class="spouse" d="M 1040 1163 H 1160" />
+
+          <!-- Alice and Dale to Level 5 children -->
+          <path d="M 1100 1163 V 1325" />
+          <path d="M 1100 1325 H 940 V 1420" />
+
+          <!-- Mary Alice McGowan + Richard Sessler -->
+          <path class="spouse" d="M 780 1463 H 850" />
+
+          <!-- Mary Alice and Richard to Level 6 children -->
+          <path d="M 815 1463 V 1605" />
+          <path d="M 815 1605 H 740 V 1700" />
+          <path d="M 815 1605 H 1040 V 1700" />
+
+          <!-- Sarah Sessler + Brian Liederback -->
+          <path class="spouse" d="M 580 1743 H 650" />
+
+          <!-- John Sessler + Anil (Herkadly) Sessler -->
+          <path class="spouse" d="M 1130 1743 H 1200" />
+
+          <!-- Sarah and Brian to Level 7 children -->
+          <path d="M 615 1743 V 1875" />
+          <path d="M 615 1875 H 490 V 1980" />
+          <path d="M 615 1875 H 740 V 1980" />
+
+          <!-- John and Anil to Level 7 child -->
+          <path d="M 1165 1743 V 1875" />
+          <path d="M 1165 1875 H 1165 V 1980" />
+        </svg>
+
+        <!-- Level 1 / Featured patriarch -->
+        <div id="nicholas-barry" class="featured-person">
+          <img src="img/nicholas-barry.jpg" alt="Nicholas Barry">
+          <span class="name">Nicholas Barry</span>
+          <span class="dates">1821&ndash;1912</span>
+          <p class="blurb">
+            The patriarch of the Barry family, and a forefather of mass production.
+          </p>
+        </div>
+
+        <div class="person branch" style="left: 1450px; top: 77px;">
+          <span>
+            <span class="name">Alice (Potts) Barry</span>
+            <span class="dates">1819&ndash;1912</span>
+          </span>
+        </div>
+
+        <!-- Level 2 -->
+        <div class="person not-main-person" style="left: 240px; top: 460px;">
+          <span><span class="name">Patrick Barry</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 510px; top: 460px;">
+          <span><span class="name">Mary Barry</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 780px; top: 460px;">
+          <span><span class="name">James Barry</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 1050px; top: 460px;">
+          <span><span class="name">Nicholas Barry Jr.</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 1320px; top: 460px;">
+          <span><span class="name">Catherine Barry</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 1590px; top: 460px;">
+          <span><span class="name">Alice Barry</span><span class="dates">1922-1976</span></span>
+        </div>
+
+        <div class="person" style="left: 1860px; top: 460px;">
+          <span><span class="name">Thomas Barry</span><span class="dates">1862&ndash;1941</span></span>
+        </div>
+
+        <div class="person branch" style="left: 2160px; top: 460px;">
+          <span><span class="name">Mary (Stockdale) Barry</span><span class="dates">1862&ndash;1946</span></span>
+        </div>
+
+        <!-- Level 3 -->
+        <div class="person" style="left: 1420px; top: 790px;">
+          <span><span class="name">Albert Barry</span><span class="dates">1886&ndash;1962</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 1670px; top: 790px;">
+          <span><span class="name">Helen Barry</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 1920px; top: 790px;">
+          <span><span class="name">Mary Barry</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 2170px; top: 790px;">
+          <span><span class="name">James Barry</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person branch" style="left: 1150px; top: 790px;">
+          <span><span class="name">Mary (Mathiason) Barry</span><span class="dates">1886&ndash;1974</span></span>
+        </div>
+
+        <!-- Level 4 -->
+        <div class="person branch" style="left: 860px; top: 1120px;">
+          <span><span class="name">Dale McGowan</span><span class="dates">1907&ndash;1963</span></span>
+        </div>
+
+        <div class="person" style="left: 1160px; top: 1120px;">
+          <span><span class="name">Alice Barry</span><span class="dates">1922&ndash;1976</span></span>
+        </div>
+
+        <div class="person not-main-person" style="left: 1410px; top: 1120px;">
+          <span><span class="name">Thomas Barry</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <!-- Level 5 -->
+        <div class="person branch" style="left: 600px; top: 1420px;">
+          <span><span class="name">Richard Sessler</span><span class="dates">1948&ndash;</span></span>
+        </div>
+
+        <div class="person branch" style="left: 850px; top: 1420px;">
+          <span><span class="name">Mary Alice McGowan</span><span class="dates">1948&ndash;</span></span>
+        </div>
+
+        <!-- Level 6 -->
+        <div class="person branch" style="left: 400px; top: 1700px;">
+          <span><span class="name">Brian Liederback</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <div class="person branch" style="left: 650px; top: 1700px;">
+          <span><span class="name">Sarah Sessler</span><span class="dates">1977&ndash;</span></span>
+        </div>
+
+        <div class="person branch" style="left: 950px; top: 1700px;">
+          <span><span class="name">John Sessler</span><span class="dates">1980&ndash;</span></span>
+        </div>
+
+        <div class="person branch" style="left: 1200px; top: 1700px;">
+          <span><span class="name">Anil (Hurkadli) Sessler</span><span class="dates">Dates here</span></span>
+        </div>
+
+        <!-- Level 7 -->
+        <div class="person branch" style="left: 400px; top: 1980px;">
+          <span><span class="name">Bo Liederback</span><span class="dates">2014&ndash;</span></span>
+        </div>
+
+        <div class="person branch" style="left: 650px; top: 1980px;">
+          <span><span class="name">Cade Liederback</span><span class="dates">2014&ndash;</span></span>
+        </div>
+
+        <div class="person branch" style="left: 1075px; top: 1980px;">
+          <span><span class="name">Mira Sessler</span><span class="dates">2025&ndash;</span></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- <div class="instructions">
+      Drag to pan. Scroll or pinch to zoom. Dashed lines show marriages; solid lines show parent-child relationships.
+    </div> -->
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.6.0/dist/panzoom.min.js"></script>
+
+  <script>
+    const viewport = document.querySelector(".tree-viewport");
+    const tree = document.querySelector("#family-tree");
+
+    const START_SCALE = 1.15;
+
+    /*
+      Manual starting point.
+      These are coordinates inside the 2500px × 2250px family-tree canvas.
+      Adjust these numbers if you want the opening view to focus on a different point.
+    */
+    const START_FOCUS_X = 900;
+    const START_FOCUS_Y = -140;
+
+    const SCREEN_FOCUS_X = 0.5;
+    const SCREEN_FOCUS_Y = 0.28;
+
+    const panzoom = Panzoom(tree, {
+      maxScale: 2.6,
+      minScale: 0.28,
+      canvas: true
+    });
+
+    function focusOnPoint(scale = START_SCALE, animate = false) {
+      const viewportWidth = viewport.clientWidth;
+      const viewportHeight = viewport.clientHeight;
+
+      const screenX = viewportWidth * SCREEN_FOCUS_X;
+      const screenY = viewportHeight * SCREEN_FOCUS_Y;
+
+      const panX = screenX - START_FOCUS_X * scale;
+      const panY = screenY - START_FOCUS_Y * scale;
+
+      panzoom.zoom(scale, { animate });
+      panzoom.pan(panX, panY, { animate });
+    }
+
+    viewport.addEventListener("wheel", panzoom.zoomWithWheel);
+
+    document.querySelector("#zoomIn").addEventListener("click", () => {
+      panzoom.zoomIn();
+    });
+
+    document.querySelector("#zoomOut").addEventListener("click", () => {
+      panzoom.zoomOut();
+    });
+
+    document.querySelector("#resetView").addEventListener("click", () => {
+      focusOnPoint(START_SCALE, true);
+    });
+
+    window.addEventListener("resize", () => {
+      focusOnPoint(START_SCALE, false);
+    });
+
+    window.addEventListener("load", () => {
+      requestAnimationFrame(() => {
+        focusOnPoint(START_SCALE, false);
+      });
+    });
+  </script>
+</body>
+</html>
