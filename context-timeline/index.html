@@ -140,7 +140,8 @@
 
     .timeline-item:not(.is-active) .timeline-text,
     .timeline-item:not(.is-active) .timeline-media-group {
-      opacity: 0.58;
+      /* opacity: 0.58; */
+      transform: translateX(-0.3rem);
     }
 
     .timeline-item.is-active .timeline-text {
@@ -154,7 +155,7 @@
 
     .date {
       margin: 0 0 0.5rem;
-      color: var(--accent);
+      color: var(--accent)!important;
       font-family: Arial, Helvetica, sans-serif;
       font-size: 0.78rem;
       font-weight: 700;
@@ -187,7 +188,7 @@
 
     .timeline-text p {
       margin: 0;
-      color: var(--muted);
+      color: var(--ink);
       font-size: 1rem;
     }
 
@@ -207,7 +208,7 @@
     }
 
     .timeline-media {
-      background: #111;
+      /* background: #111; */
       overflow: hidden;
       border-radius: 0.8rem;
       box-shadow: 0 0.9rem 2rem rgba(31, 42, 46, 0.16);
@@ -224,12 +225,12 @@
       padding: 0.9rem 1rem 1rem;
       color: white;
       font-family: Arial, Helvetica, sans-serif;
-      background: var(--ink);
+      /* background: var(--bg); */
     }
 
     .slide figcaption, .panorama-card figcaption {
       padding: 20px;
-      background-color: var(--ink);
+      background-color: #fff;
     }
 
 
@@ -237,13 +238,13 @@
       margin: 0 0 0.25rem;
       font-size: 1rem;
       font-weight: 700;
-      color: white;
+      color: var(--ink);
     }
 
     .caption-text {
       margin: 0;
       font-size: 0.9rem;
-      color: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
     }
 
     .article-video {
@@ -277,7 +278,7 @@
 
 
     .illustration-feature {
-      background: transparent;
+      background: var(--bg);
       box-shadow: none;
       border-radius: 0;
       overflow: visible;
@@ -285,6 +286,10 @@
       flex-direction: column;
       align-items: center;
       gap: 1rem;
+      margin: 0 0 1rem;
+    }
+    .illustration-feature img {
+      max-height: 300px;
     }
 
     .illustration-feature svg {
@@ -312,6 +317,15 @@
       align-items: center;
       justify-content: center;
       width: fit-content;
+    }
+    .story-button.sb-produce {
+      background-color: #596e1d;
+    }
+    .story-button.sb-pearl {
+      background-color: #55719e;
+    }
+    .story-button.sb-china {
+      background-color: #901820;
     }
 
     .story-button:hover,
@@ -352,16 +366,16 @@
       justify-content: space-between;
       gap: 0.75rem;
       padding: 0.9rem 1rem 1rem;
-      background: var(--ink);
+      background: #fff;
     }
 
     .slideshow-controls .media-control-button {
-      background: rgba(255, 255, 255, 0.13);
+      background: rgba(1, 32, 92, 1);
       padding: 0.65rem 0.9rem;
     }
 
     .slideshow-controls .media-control-button:hover {
-      background: rgba(255, 255, 255, 0.24);
+      background: rgba(1, 32, 92, 0.8);
     }
 
     .single-video video {
@@ -427,7 +441,7 @@
       width: auto;
       transform: none;
       background:
-        linear-gradient(rgba(253, 249, 230, 0.18), rgba(253, 249, 230, 0.18)),
+        linear-gradient(rgba(253, 249, 230, 0.18), rgba(253, 249, 230, 0.9)),
         url("img/bridge.jpg") center / cover no-repeat;
       z-index: -2;
     }
@@ -478,9 +492,7 @@
       display: block;
     }
 
-    .illustration-feature img {
-      max-height: 66vh;
-    }
+
 
     .timeline-text p + p {
       margin-top: 1rem;
@@ -493,12 +505,12 @@
     }
 
     @media (min-width: 901px) {
-      .timeline-item:not(.timeline-hero) .timeline-text {
+      /* .timeline-item:not(.timeline-hero) .timeline-text {
         background: var(--pearl);
         padding: clamp(1.5rem, 2vw, 2.25rem);
         border-radius: 0.8rem;
         box-shadow: 0 0.9rem 2rem rgba(31, 42, 46, 0.08);
-      }
+      } */
     }
 
     @media (max-width: 900px) {
@@ -530,6 +542,22 @@
         max-width: min(34rem, 88vw);
       }
     }
+
+     @media (max-width: 740px){
+      .timeline-hero::before {
+        left: calc(50% - 60dvw);
+       right: calc(50% - 50dvw);
+      }
+     }
+
+    @media (max-width: 500px){
+      .slideshow-media {
+        margin-left:0;
+        margin-right: 0;
+      }
+      
+    }
+
   </style>
 </head>
 <body>
@@ -546,8 +574,7 @@
         <div class="timeline-text">
           <h1>Bridging the Past and Present</h1>
           <p>
-            An abridged multimedia history of Muscatine, Iowa
-          </p>
+           An Abridged Multimedia Timeline of Muscatine's History as Told by its Residents</p>
         </div>
         <div class="timeline-media-group">
           <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
@@ -562,46 +589,35 @@
       <article class="timeline-item slideshow-story">
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
-          <p class="date">1830s</p>
-          <h2>Muscatine's Beginning</h2>
-          <H2 style="color:red">THIS NEEDS FACT CHECKING AND REWRITING</H2>
+          <p class="date">1830s&ndash;1840s</p>
+          <h2>Early Muscatine</h2>
           
-          <h3>Blackhawk War <span class="date">April&ndash;August 1832</span></h3>
-          <p>
-            The Black Hawk War was a conflict between the United States and Native Americans led by Black Hawk, a Sauk leader. Following his defeat, Black Hawk and his allies were forced to cede a 50-mile-wide strip of land along the western banks of the Mississippi River, officially known as the Black Hawk Purchase. This would include the land that became Muscatine.
+          <h3>The Black Hawk Purchase<span class="date"> Early 1830s </span></h3>
+          <p>In 1832, a war between the Black Hawk tribe and early settlers led to the Black Hawk Purchase. This treaty with the natives resulted in the eastern part of Iowa being sold to the United States government, opening the first land for settlement in Iowa.
+            
           </p>
-          <h3>First Settlers <span class="date">1833</span></h3>
-          <p>
-            Muscatine, seat of Muscatine County, first came into existence in the summer of 1833 when Colonel George Davenport of Rock Island, Illinois, sent three representatives into the territory to set up a trading post. The outpost was nicknamed "Casey's Woodpile" OR MAYBE "Casey's Wood Yard of Newburg" because the primary business of the depot was supplying the passing steamboats with cut wood to burn for fuel.
+          <h3>First Settlers <span class="date"> 1833&ndash;1839</span></h3>
+          <p>After the Black Hawk Purchase, more settlers started immigrating to Iowa. The first settlement within the present limits of the county of Muscatine was made by Benjamin Nye in 1834; the following year, J. W. Casey settled in the lower part of Bloomington, which would eventually become Muscatine.
+            
           </p>
-          <h3>Bloomington to Muscatine <span class="date">June 7, 1849</span></h3>
-          <p>
-            The town referred to as Bloomington was originally incorporated in 1839, but the name led to confusion. The town's citizens had petitioned for the change because mail was frequently being misrouted to other towns named Bloomington in neighboring states.
+          <h3>Bloomington to Muscatine <span class="date">1842&ndash;1849</span></h3>
+          <p>Muscatine was founded in 1839 and originally named Bloomington. During that time, Bloomington was a popular name for towns in the Midwest, often leading to mail being misdirected. A name change for the town was first proposed in 1842, but due to much opposition no action was taken. In 1849, the town’s name was finally changed to Muscatine after several citizens signed a petition in support of the change.
           </p>
         </div>
         <div class="timeline-media-group">
           <figure class="slideshow-media" data-slideshow>
             <div class="slide is-current">
-              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+               <img src="img/cabin.png" alt="River image placeholder"/>
               <figcaption>
-                <p class="caption-title">Slide 1: River context</p>
-                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">Log cabin built about 1840 by Capt. Sam Holliday on Burlington Road. Photograph by Prof. F.M.Witter, 1899 (Graham Gallery).</p>
               </figcaption>
             </div>
             <div class="slide">
-              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
-                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-              </video>
+               <img src="img/bloomington.jpg" alt="River image placeholder"/>
               <figcaption>
-                <p class="caption-title">Slide 2: Video clip</p>
-                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
-              </figcaption>
-            </div>
-            <div class="slide">
-              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
-              <figcaption>
-                <p class="caption-title">Slide 3: Detail image</p>
-                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">Copy of an illustration of Muscatine in 1845 (Oscar Grossheim Gallery).</p>
               </figcaption>
             </div>
             <div class="slideshow-controls" aria-label="Slideshow controls">
@@ -612,40 +628,74 @@
         </div>
       </article>
 
+      <!-- PRODUCE-->
+      <article class="timeline-item illustration-story">
+        <span class="timeline-dot" aria-hidden="true"></span>
+        <div class="timeline-text">
+          <p class="date">1845&ndash;Today</p>
+          <h2>Produce in the Floodplains</h2>
+           <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
+            <img src="img/melons.jpg" alt="Melons" />
+          </figure>
+          <p>
+            When the first white settlers set up their homes in the prairie land of Muscatine County, their main occupation was farming. In 1845, a dam constructed by the Muscatine Company connected Muscatine Island and the mainland. This allowed about 22,000 acres of fertile soil to be reclaimed from swampy land. The land has since been devoted to farming high-quality produce like Muscatine’s famous melons, cantaloupes, and sweet potatoes.</p>
+            <div class="story-btn-wrap"><a class="story-button sb-produce" href="https://isle2026.tilda.ws/producing-the-future">See the related story</a></div>
+        </div>
+         <div class="timeline-media-group">
+          <figure class="slideshow-media" data-slideshow>
+            <div class="slide is-current">
+              <img src="img/farm.jpeg" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">Chrysanthemum seeds being planted at Mairet Farms in Muscatine on Saturday, May 23, 2026 (Jolie Steeger).</p>
+                 
+              </figcaption>
+            </div>
+        <div class="timeline-media-group">
+        </div>
+      </article>
+
        <!-- Lumber -->
       <article class="timeline-item slideshow-story">
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
-          <p class="date">1840s&ndash;1890s</p>
+          <p class="date">1850s&ndash;1900s</p>
           <h2>Lumber Town</h2> 
-          <p>
-           The lumber industry boomed in Muscatine, Iowa, due to its strategic location on the Mississippi River, which allowed for cheap transport of logs from northern forests.
-          </p>
-          <p>THIS IS FROM <a href="https://www.muscatineiowa.gov/341/Muscatine-History">https://www.muscatineiowa.gov/341/Muscatine-History</a>Lumbering, saw and planing mills, sash and door factories, and other forms of woodworking were a major industry in Muscatine. When the nearby forests were cut off, lumber operators moved up the Mississippi River and brought the logs downstream by water. With the coming of the railroad, lumber was shipped in, but through all these changes various types of woodworking continued to be Muscatine's major industry. Muscatine businessmen acquired forest lands and continued to operate saw mills in various parts of the county.</p>
+         <p>
+           From the 1850s until nearly the end of the century, the lumber industry thrived in Muscatine. Close access to the Mississippi River placed Muscatine in an important position in the lumber trade of the nation.</p>
+
+          <p>Muscatine businessmen acquired forestland and operated sawmills in various parts of the county. Musser Lumber Co. was one of the pioneer Muscatine lumber firms established in 1855 by Peter and Richard Musser. The Musser family’s mill cut about 11 million feet of lumber each year, promoting the growth of the entire community.</p>
+
+          <p>By the end of the 1800s, Muscatine’s lumber industry was in decline. In 1886, a fire destroyed the Muscatine Lumber Co., which was never rebuilt. Additionally, the rising costs of transporting logs by railroad and other economic woes forced local mills to close. Muscatine's lumber industry was practically extinct by 1905.</p>
         </div>
         <div class="timeline-media-group">
           <figure class="slideshow-media" data-slideshow>
             <div class="slide is-current">
-              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+               <img src="img/woodmen.jpg" alt="River image placeholder"/>
               <figcaption>
-                <p class="caption-title">Slide 1: River context</p>
-                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">Group photograph of the Modern Woodmen team, possibly the Foresters drill team, dressed in their parade uniforms on June 1, 1901 (Oscar Grossheim Gallery).</p>
               </figcaption>
             </div>
             <div class="slide">
-              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
-                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-              </video>
+               <img src="img/lumberco1.jpg" alt="River image placeholder"/>
               <figcaption>
-                <p class="caption-title">Slide 2: Video clip</p>
-                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">A photograph taken from the Mississippi river side of the South Muscatine Lumber Co. on June 1, 1901 (Oscar Grossheim Gallery).</p>
               </figcaption>
             </div>
             <div class="slide">
-              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
+               <img src="img/lumberco2.jpg" alt="River image placeholder"/>
               <figcaption>
-                <p class="caption-title">Slide 3: Detail image</p>
-                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">A view of the South Muscatine Lumber Company's lumberyard showing piles of rolled two by fours in 1904 (Oscar Grossheim Gallery).</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+               <img src="img/hersheymill.png" alt="River image placeholder"/>
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">Hershey Upper Mill as it appeared in the early 1890s, after it had been greatly enlarged since first built in 1857 with capacity increased to 224,000 feet of lumber daily, or even five times its output in 1856. Closed in 1902, from lack of logs in the northern pineries, and afterward dismantled (Graham Gallery).</p>
               </figcaption>
             </div>
             <div class="slideshow-controls" aria-label="Slideshow controls">
@@ -661,34 +711,27 @@
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
           <p class="date">1854</p>
-          <h2>Mark Twain Calls Muscatine Home</h2> 
+          <h2>Mark Twain Visits Muscatine</h2> 
           <p>
-           Twain's brother, Orion, was part owner of the still operating <a href="https://muscatinejournal.com/"><i>Muscatine Journal</i></a>.</p><p>  In his book, “Life on the Mississippi”, he fondly recalled the sunsets in Muscatine, writing “I remember Muscatine &mdash; still more pleasantly &mdash; for its summer sunsets.  I have never seen any, on either side of the ocean, that equaled them."
+           Distinguished American writer, humorist, journalist, and literary critic, Mark Twain visited Muscatine in 1854. He is considered one of the great figures of American literature.
+          </p>
+           <p>In Twain's book, “Life on the Mississippi”, he fondly recalls the sunsets in Muscatine, “I remember Muscatine &mdash; still more pleasantly &mdash; for its summer sunsets. I have never seen any, on either side of the ocean, that equaled them." The Mark Twain Overlook was created in his honor. A bluff near the Iowa-Illinois bridge, once home to Muscatine’s first radio station, offers a view of the riverfront and the beautiful sunsets Mark Twain described.</p>
           </p>
         </div>
         <div class="timeline-media-group">
           <figure class="slideshow-media" data-slideshow>
             <div class="slide is-current">
-              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+              <img src="img/marktwain.png" alt="River image placeholder" />
               <figcaption>
-                <p class="caption-title">Slide 1: River context</p>
-                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text"> A portrait of Mark Twain published in the Muscatine Journal on April 23, 1960 (Musser Public Library Newspaper Archive).</p>
               </figcaption>
             </div>
             <div class="slide">
-              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
-                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-              </video>
+              <img src="img/overlook.jpg" alt="Machinery image placeholder" />
               <figcaption>
-                <p class="caption-title">Slide 2: Video clip</p>
-                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
-              </figcaption>
-            </div>
-            <div class="slide">
-              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
-              <figcaption>
-                <p class="caption-title">Slide 3: Detail image</p>
-                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">The view from Mark Twain Overlook of the Norbert F. Beckey Bridge crossing from Iowa to Illinois on Wednesday, May 27, 2026 (Kabedi Mutamba).</p>
               </figcaption>
             </div>
             <div class="slideshow-controls" aria-label="Slideshow controls">
@@ -700,69 +743,56 @@
       </article>
 
       <!-- CLARK -->
-      <article class="timeline-item panorama-story">
+      <article class="timeline-item slideshow-story">
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
           <p class="date">1868</p>
-          <h2>Alexander Clark Wins Desegregation</h2>
+          <h2>Alexander Clark Fights Iowa Desegregation</h2>
            <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
             <img src="img/clark.jpg" alt="Alexander Clark" />
             
           </figure>
-          <p>
-            Alexander G. Clark was a Black laborer, barber, lawyer, diplomat and activist.
-            In 1867, when the Muscatine school district said Clark's daughter, Susan, 12, couldn't attend the same public school that white students attended, he sued. The Iowa Supreme Court ruled in his favor in 1868, saying that all children could attend a common school.
+          <p>Alexander Clark was a black laborer, barber, lawyer, diplomat, and a prominent abolitionist in early Iowa. Originally from Pennsylvania, Clark moved to Muscatine in 1842.</p>
+
+          <p>Clark’s most widely recognized achievement was his role in desegregating Iowa public schools. In 1867, Clark filed a lawsuit against the Muscatine school district after they said his 12-year-old daughter, Susan, could not attend school with White Students. The case went all the way to the Iowa Supreme Court, which issued the Clark decision 86 years before the better-known Brown v. Board of Education decision, which ruled segregation unconstitutional nationwide.</p>
+
+          <p>The Alexander Clark House is on the U.S. National Register of Historic Places and is preserved and owned by local historian Kent Sissle. Sissle has dedicated several decades of his life to making sure people never forget Alexander Clark.
           </p>
-          <div class="story-btn-wrap"><a class="story-button" href="#illustration-story">See the related story</a></div>
         </div>
        <div class="timeline-media-group">
-          <figure class="panorama-card">
-            <div class="panorama-window" id="muscatinePanorama" aria-label="Interactive 360 image placeholder"></div>
-            <!-- <div class="panorama-actions">
-              <button class="media-control-button" type="button" id="panoramaFullscreenButton">Full screen</button>
-            </div> -->
-            <figcaption>
-              <p class="caption-title">Alexander Clark's Home</p>
-              <p class="caption-text">Something about his home becoming a musuem.</p>
+          <figure class="timeline-media single-video">
+           <div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/1198561740?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Alexander Clark History Video"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
+            <div>
+            </div>
             </figcaption>
           </figure>
         </div>
       </article>
 
-       <!-- PRODUCE-->
-      <article class="timeline-item illustration-story">
-        <span class="timeline-dot" aria-hidden="true"></span>
-        <div class="timeline-text">
-          <p class="date">1920s&ndash;Today</p>
-          <h2>FRUIT (AND VEGGIE) LAND</h2>
-          <p>
-            Muscatine's famous melon industry &mdash; as well as other truck produce &mdash; blossomed in the late 19th century. The region's sandy, well-drained soil and micro-climate made it a perfect agricultural hub. It became a major economic force, with hundreds of train carloads of melons shipped across the Midwest annually.
-          </p>
-        </div>
-        <div class="timeline-media-group">
-          <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
-            <img src="img/melons.jpg" alt="Xi Jinping" />
-            <a class="story-button" href="#illustration-story">See the related story</a>
-          </figure>
-        </div>
-      </article>
+
 
        <!-- BUTTONS-->
       <article class="timeline-item illustration-story">
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
-          <p class="date">late 1890s&ndash;1940s</p>
-          <h2>PEARL CITY</h2>
-          <p>
-            Button factories expanded along the city's industrial edge.
-          </p>
-          <p>German immigrant John Frederick Boepple founded the first button-cutting factory in Muscatine, utilizing the abundant freshwater mussel shells of the Mississippi River.</p>
-          <p>THIS IS FROM <a href="https://www.muscatineiowa.gov/341/Muscatine-History">https://www.muscatineiowa.gov/341/Muscatine-History</a>John Fred Boepple, a German immigrant with a flair for making buttons, came to Muscatine in 1887. By mistake, Boepple found that freshwater mussel shells, instead of animal horns, made a stronger button that more closely resembled the fashionable buttons made of expensive import marine shells. Nicholas Barry and his sons invented a machine which turned out better buttons with less labor. Muscatine soon became the world's largest pearl button manufacturer, its factories employing half of the Muscatine workforce during the turn of the century, earning it the name of Pearl Button Capital of the World. In 1905, more than 1.5 billion pearl buttons were made in Muscatine. Today, nearly all buttons are made from plastic.</p>
+          <p class="date">1890s&ndash;1950s</p>
+          <h2>Pearl City</h2>
+          <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
+            <img src="img/clamming.jpg" alt="Clamming" />
+          </figure>
+           <p>In 1891, John Fred Boepple, a seashell button cutter from Germany, founded Muscatine’s first button manufacturing company, which used freshwater mussel shells that abounded in the Mississippi River.</p>
+          <p>Emerging during the lumber industry's decline, the button business brought millions of dollars to Muscatine and fueled the city’s growth. By 1905, during the height of button production, 1.5 billion buttons were manufactured per year in Muscatine.</p>
+          <p>By the mid-1900s, several factors contributed to the decline of Muscatine’s button industry, including overharvesting for mass production that depleted local mussel beds. Additionally, after World War II, industrialization and the rise of durable plastic buttons accelerated the industry’s downfall.</p>
+          <div class="story-btn-wrap"><a class="story-button sb-pearl" href="https://isle2026.tilda.ws/pride-of-pearl-city">See the related story</a></div>
         </div>
         <div class="timeline-media-group">
-          <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
-            <img src="img/clamming.jpg" alt="Xi Jinping" />
-            <a class="story-button" href="#illustration-story">See the related story</a>
+          <figure class="slideshow-media" data-slideshow>
+            <div class="slide is-current">
+              <img src="img/pearl.jpg" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text"> Caption, on Tuesday, May 26, 2026 (Alayna Larson).</p>  
+            </div>
           </figure>
         </div>
       </article>
@@ -771,54 +801,99 @@
       <article class="timeline-item slideshow-story">
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
-          <p class="date">1890s&ndash;Today</p>
-          <h2>Industrialization & Modern Industry</h2>
+          <p class="date">1892&ndash;Today</p>
+          <h2>Muscatine's Modern Industries</h2>
           <h3>Heinz <span class="date">1893</span></h3>
           <p>
-            Established in 1893, the Heinz plant in Muscatine was the company's first major expansion outside of Pittsburgh. It is the largest Heinz facility outside of corporate headquarters, anchored by a rich history of tomato farming and ongoing, multi-million-dollar modernizations.
+           In 1892, Muscatine’s fertile soils were ideal for tomato plantations attracting American food processing company, Heinz. Today, Muscatine's Heinz plant produces a wide variety of sauces and condiments.
           </p>
-          <h3>Stanley Corporations <span class="date">1913</span></h3>
-          <p>
-            Stanley Consultants (1913), HNI Corporation (1947), Stanley Center for Peace and Security (1956).
-          </p>
-          <h3>Kent Worldwide <span class="date">1936</span></h3>
-          <p>
-            The growing feed business moves to Muscatine, Iowa, capitalizing on the transportation benefits of the Mississippi River.</p>
-            
-          <h3>Carver Pump <span class="date">1938</span></h3>
-           <p>
-            Carver Pump was founded by Roy Carver Sr. in 1938. The original factory was located next to the Mississippi river in Muscatine, Iowa which is about 25 miles southwest of the Quad Cities area.</p>
-          <h3>Grain Processing Corporation <span class="date">1943</span></h3>
-            <p>Grain Processing Corporation (GPC) was founded and incorporated on February 11, 1943 in Muscatine, Iowa. It was originally established by S.G. Stein and G.A. Kent to build and operate an industrial alcohol plant for the World War II synthetic rubber program.
-          </p>
-          <h3>Bandag <span class="date">1957</span></h3>
-            <p>Bandag was founded in Muscatine in 1957 by American entrepreneur Roy J. Carver. Carver purchased the U.S. rights to a German "cold-cure" tire-retreading process and started operations in a former sauerkraut plant in the city.
-          </p>
-          
+         <h3>Stanley Corporations <span class="date">1913&ndash;Today</span></h3>
+          <p>The Stanley Family founded several major corporations in Muscatine.</p>
+          <p>Their engineering consultant firm, Stanley Consultants, was founded in 1913 to help clients worldwide solve complex engineering challenges.</p>
+        <p>The family also founded HNI in 1947 to create jobs for returning World War II veterans. HNI has grown into a leading provider of workplace furnishings.</p>
+        <p>The Stanley Center for Peace and Security, founded in 1956, collaborates across countries in progress toward peace.</p>
+          <h3>Kent Worldwide <span class="date">1927&ndash;Today</span></h3>
+          <p>Kent Worldwide, founded in 1927, is a family-owned company known for its variety of livestock, pet care, food service, healthcare, beverage products, and more. </p>
+          <h3>Carver Pump <span class="date">1941&ndash;Today</span></h3>
+           <p>Carver Pump, founded by Roy J. Carver Sr. and operated in Muscatine since 1941, is recognized for its high-end centrifugal pumps and is a supplier for the U.S. Navy and Air Force.</p>
         </div>
         <div class="timeline-media-group">
           <figure class="slideshow-media" data-slideshow>
             <div class="slide is-current">
-              <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80" alt="River image placeholder" />
+              <img src="img/heizold.jpeg" alt="River image placeholder" />
               <figcaption>
-                <p class="caption-title">Slide 1: River context</p>
-                <p class="caption-text">Replace with an archival river photograph, map detail, or establishing image.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">A view of Heinz's Muscatine Plant in 1907. This was the first branch opened outside of the Pittsburgh area (H.J. Heinz Company Photographs, 1864-2001, MSP 57, Detre Library & Archives, Heinz History Center).</p>
+              </figcaption>
+            </div>
+               <div class="slide">
+              <img src="img/The_Muscatine_Journal_1952_09_25_9.jpg" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">Image featured in Muscatine Journal on September 25,1952 (Musser Public Library Newspaper Archive). </p>
               </figcaption>
             </div>
             <div class="slide">
-              <video controls muted playsinline poster="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1600&q=80">
-                <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-              </video>
+              <img src="img/hon.jpg" alt="Machinery image placeholder" />
               <figcaption>
-                <p class="caption-title">Slide 2: Video clip</p>
-                <p class="caption-text">A slideshow can include a short video when motion adds useful evidence.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">Image featured in the Muscatine Journal on May 03, 1979 (Musser Public Library Newspaper Archive). </p>
               </figcaption>
             </div>
             <div class="slide">
-              <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80" alt="Machinery image placeholder" />
+              <img src="img/HNI.png" alt="Machinery image placeholder" />
               <figcaption>
-                <p class="caption-title">Slide 3: Detail image</p>
-                <p class="caption-text">Use detail images for tools, materials, documents, or built environments.</p>
+                <p class="caption-title"></p>
+                <p class="caption-text">The HNI Building is seen in Muscatine Journal on December 17, 2022 (Musser Public Library Newspaper Archive). </p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="img/The_Muscatine_Journal_1970_06_19_2.jpg" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">Image featured in the in Muscatine Journal on June 19, 1970 (Musser Public Library Newspaper Archive). </p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="img/The_Muscatine_Journal_2024_03_22_A1.jpg" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">Image featured in the Muscatine Journal on March 22, 2024 (Musser Public Library Newspaper Archive). </p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text"> (Picture of the Stanley Center for Peace and Security) Caption by Natalie on (day of the week) May (day of the month), 2026 (Natalie Jasso). </p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="img/kentold.png" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text"> A Kent Feeds Plant is seen in Altoona in Muscatine Journal on December 29, 1967 (Musser Public Library Newspaper Archive).</p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="img/The_Muscatine_Journal_2024_02_20_A1.jpg" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">Image featured in the Muscatine Journal on February 02, 2024 (Musser Public Library Newspaper Archive). </p>
+              </figcaption>
+            </div>
+             <div class="slide">
+              <img src="img/carverdisplay.jpg" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">Carver Pump display seen on the second floor of Muscatine's Pearl Button Museum on Thursday, May 28, 2026 (Sophia Restiffe-Favoretto). </p>
+              </figcaption>
+            </div>
+            <div class="slide">
+              <img src="img/The_Muscatine_Journal_2025_08_09_A1.jpg" alt="Machinery image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">Image featured in the Muscatine Journal on August 09, 2025 (Musser Public Library Newspaper Archive). </p>
               </figcaption>
             </div>
             <div class="slideshow-controls" aria-label="Slideshow controls">
@@ -829,26 +904,21 @@
         </div>
       </article>
 
-
       <!-- LATINO -->
       <article class="timeline-item video-story">
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
-          <p class="date">Late 1890s</p>
-          <h2>Latino Community</h2>
-          <p>
-            As the industrial part of Muscatine started develop, laborers were needed to work in the factories and fields.
+          <p class="date">Late 1970s&ndash;Today</p>
+          <h2>Muscatine's Latino Community</h2>
+         <p>
+            In the late 1800s, Latino migrant farmers began seeking opportunities in Iowa, working as tomato and sugar beet pickers. These farmers were on contract, often going back and forth between other states, such as Texas, California, Minnesota, and the Dakotas. This migration continued for decades, but it wasn’t until the 1970s that these farmers began to establish roots in Muscatine, working for companies like Heinz and IBP.</p>
+
+            <p>Rosa Mendoza  and her family were among the Latinos who moved from picking tomatoes as migrant farmers to working in factories in the Muscatine area. As the executive director of the Diversity Service Center of Iowa, Mendoza has watched the Latino community increase substantially since the 70s. It’s a growth that she says supports the strength of the many industries located in Muscatine.
           </p>
         </div>
         <div class="timeline-media-group">
           <figure class="timeline-media single-video">
-            <video controls playsinline poster="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80">
-              <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-            </video>
-            <figcaption>
-              <p class="caption-title">Single video placeholder</p>
-              <p class="caption-text">Replace this with an interview, process video, narrated explainer, or edited mini-story.</p>
-            </figcaption>
+            <div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/1198561739?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Latino Community History Video"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
           </figure>
         </div>
       </article>
@@ -857,21 +927,15 @@
       <article class="timeline-item video-story">
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
-          <p class="date">1965</p>
-          <h2>Art Center</h2>
+          <p class="date">1965&ndash;Today</p>
+          <h2>Muscatine Art Center</h2>
           <p>
-            Open since 1965, the Muscatine Art Center is many things to the community of Muscatine.It represents a gathering place for celebrating the area’s history and culture.
+            The Muscatine Art Center has been operating since 1965 and is accredited by the American Alliance of Museums. The center serves as a local history museum, contemporary art gallery, and community gathering place. Listed on the National Register of Historic Places, the center also features a Japanese-style garden from the 1930s, an example of the museum's dedication to preserving and sharing Muscatine’s history, art, and culture.
           </p>
         </div>
         <div class="timeline-media-group">
           <figure class="timeline-media single-video">
-            <video controls playsinline poster="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80">
-              <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
-            </video>
-            <figcaption>
-              <p class="caption-title">Single video placeholder</p>
-              <p class="caption-text">Replace this with an interview, process video, narrated explainer, or edited mini-story.</p>
-            </figcaption>
+            <div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/1198561741?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Art Center History Video"></iframe></div><script src="https://player.vimeo.com/api/player.js"></script>
           </figure>
         </div>
       </article>
@@ -880,16 +944,27 @@
       <article class="timeline-item illustration-story">
         <span class="timeline-dot" aria-hidden="true"></span>
         <div class="timeline-text">
-          <p class="date">1985</p>
-          <h2>Xi Jinping Visits</h2>
-          <p>
-            The relationship between Muscatine, Iowa, and China began in April 1985, when Chinese President Xi Jinping—then a 31-year-old county official—visited Muscatine as part of an agricultural delegation.
-          </p>
-        </div>
-        <div class="timeline-media-group">
+          <p class="date">1985&ndash;Today</p>
+          <h2>Muscatine Welcomes Xi Jinping</h2>
           <figure class="illustration-feature" aria-label="Transparent illustration placeholder">
             <img src="img/jinping.jpg" alt="Xi Jinping" />
-            <a class="story-button" href="#illustration-story">See the related story</a>
+          </figure>
+         <p>
+            Chinese President Xi Jinping’s special connection to Muscatine, Iowa, began in 1985 when, as a young county official, he visited the town as part of an agricultural delegation. President Jinping formed close bonds with local residents he still calls his “Old Friends.” Decades later, in 2012, Xi Jinping made a personal return visit to Muscatine during an official U.S. diplomatic trip, just before becoming the President of the People's Republic of China. For decades, Muscatine locals have stayed in touch with President Jinping. This relationship has resulted in Muscatine High School students receiving special travel invitations to China in addition to other educational opportunities.
+          </p>
+          <div class="story-btn-wrap"><a class="story-button sb-china" href="https://isle2026.tilda.ws/belonging-beyond-borders">See the related story</a></div>
+        </div>
+        <div class="timeline-media-group">
+          <figure class="slideshow-media" data-slideshow>
+            <div class="slide is-current">
+              <img src="img/sarah.jpg" alt="River image placeholder" />
+              <figcaption>
+                <p class="caption-title"></p>
+                <p class="caption-text">The English transcription of the letter to Sarah Lande from President Xi Jinping, expressing his gratitude and announcing his "50k in 5 years" initiative seen at Sarah Lane's house on (day of the week), May (day of the month), 2026 (Natalie Jasso).</p>
+                 
+              </figcaption>
+            </div>
+           
           </figure>
         </div>
       </article>
@@ -901,7 +976,7 @@
           <p class="date">NOW</p>
           <h2>Looking Ahead</h2>
           <p>
-            What is the future of Muscatine? We asked current residents.
+            This timeline highlights Muscatine’s rich and unique history as remembered by its residents, but what do they see for the town’s future?
           </p>
         </div>
         <div class="timeline-media-group">
@@ -909,10 +984,10 @@
             <video controls playsinline poster="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1600&q=80">
               <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4" />
             </video>
-            <figcaption>
+            <!-- <figcaption>
               <p class="caption-title">Single video placeholder</p>
               <p class="caption-text">Replace this with an interview, process video, narrated explainer, or edited mini-story.</p>
-            </figcaption>
+            </figcaption> -->
           </figure>
         </div>
       </article>
@@ -924,7 +999,7 @@
           <p class="date">1830s&ndash;1890s</p>
           <h2>Slideshow: River Work</h2>
           <p>
-            This dummy section is built for a slideshow. Use it when the story needs a short sequence of archival images, present-day photos, or brief video clips.
+            This dummy section is buhttps://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80ilt for a slideshow. Use it when the story needs a short sequence of archival images, present-day photos, or brief video clips.
           </p>
         </div>
         <div class="timeline-media-group">
@@ -1038,7 +1113,7 @@
       </article> -->
 
 
-      <small style="display:block;margin-bottom:0.5rem"><b>Illustration Photo Credits:</b> Norbert F. Beckey Bridge - Chris Light, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons, Xi Jinping - Kremlin.ru, CC BY 4.0 <https://creativecommons.org/licenses/by/4.0>, via Wikimedia Commons, Alexander Clark - Simmons, William J., Public domain, via Wikimedia Commons, Clammers - George Lefevre, Public domain, via Wikimedia Commons, Melons - Wellcome Collection, CC BY 4.0 <https://creativecommons.org/licenses/by/4.0>, via Wikimedia Commons </small>
+      <small style="display:block;margin-bottom:0.5rem; margin-top:5rem;"><b>Illustration Photo Credits:</b> Norbert F. Beckey Bridge - Chris Light, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons, Xi Jinping - Kremlin.ru, CC BY 4.0 <https://creativecommons.org/licenses/by/4.0>, via Wikimedia Commons, Alexander Clark - Simmons, William J., Public domain, via Wikimedia Commons, Clammers - George Lefevre, Public domain, via Wikimedia Commons, Melons - Wellcome Collection, CC BY 4.0 <https://creativecommons.org/licenses/by/4.0>, via Wikimedia Commons </small>
       <small><b>AI Disclaimer:</b> This page's custom code was built with the help of AI. Illustrations credited above had AI-powered image style transfer applied to photographs.</small>
 
     </div>

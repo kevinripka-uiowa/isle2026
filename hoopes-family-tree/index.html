@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hoopes / Kiwala Family Tree</title>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --card: #fffae6;
+      --feature-card: #fffae6;
+      --branch-card: #fffae6;
+      --ink: #01205C;;
+      --muted: #a85f3f;
+      --line: #9b8f80;
+      --spouse-line: #7a4f2a;
+      --shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    .app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 30;
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 253, 248, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 999px;
+      padding: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .toolbar button {
+      border: 0;
+      border-radius: 999px;
+      background: #efefef;
+      color: var(--ink);
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .toolbar button:hover {
+      background: #e6e9ef;
+    }
+
+    .tree-viewport {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .tree-viewport:active {
+      cursor: grabbing;
+    }
+
+    #family-tree {
+      position: relative;
+      width: 1700px;
+      height: 2150px;
+      transform-origin: 0 0;
+    }
+
+    .tree-lines {
+      position: absolute;
+      inset: 0;
+      width: 1700px;
+      height: 2150px;
+      pointer-events: none;
+      overflow: visible;
+    }
+
+    .tree-lines path {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .tree-lines .spouse {
+      stroke: var(--spouse-line);
+      stroke-width: 4;
+      stroke-dasharray: 8 8;
+    }
+
+    .person {
+      position: absolute;
+      width: 180px;
+      min-height: 86px;
+      border-radius: 18px;
+      padding: 16px 14px;
+      background: var(--card);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .person.branch {
+      background: var(--branch-card);
+    }
+
+    .person .name {
+      display: block;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.18;
+    }
+
+    .person .dates {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.2;
+    }
+
+    .featured-person {
+      position: absolute;
+      left: 710px;
+      top: -90px;
+      width: 280px;
+      border-radius: 24px;
+      padding: 18px;
+      background: var(--feature-card);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+      text-align: center;
+    }
+
+    .featured-person img {
+      width: 100%;
+      /* aspect-ratio: 4 / 3; */
+      object-fit: contain;
+      display: block;
+      border-radius: 18px;
+      margin-bottom: 14px;
+      max-height: 200px;
+    }
+
+    .featured-person .name {
+      display: block;
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+
+    .featured-person .dates {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .featured-person .blurb, .blurb {
+      margin: 12px 0 0;
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .person .blurb {
+        margin-top:0;
+        line-height: 1.2;
+    }
+
+    .instructions {
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 20;
+      max-width: 360px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 253, 248, 0.9);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(10px);
+    }
+
+    .not-main-person {
+      opacity: 0.7;
+      background-color: #fff;
+    }
+
+    .not-main-person .dates {
+      display: none;
+    }
+
+    @media (max-width: 700px) {
+      .toolbar {
+        top: 10px;
+        left: 10px;
+      }
+
+      .instructions {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <div class="toolbar" aria-label="Family tree controls">
+      <button id="zoomIn" type="button">+</button>
+      <button id="zoomOut" type="button">−</button>
+      <button id="resetView" type="button">Reset</button>
+    </div>
+
+    <div class="tree-viewport">
+      <div id="family-tree">
+
+        <svg class="tree-lines" viewBox="0 0 1700 2150" aria-hidden="true">
+          <!-- Direct Hoopes line -->
+          <path d="M 850 360 V 520" />
+          <path d="M 850 606 V 790" />
+          <path d="M 850 876 V 1060" />
+
+          <!-- John Hoopes + Mary Beth Hoopes marriage -->
+          <path class="spouse" d="M 940 1103 H 1160" />
+
+          <!-- John and Mary Beth to children -->
+          <path d="M 1050 1103 V 1245" />
+          <path d="M 1050 1245 H 500 V 1330" />
+          <path d="M 1050 1245 H 750 V 1330" />
+          <path d="M 1050 1245 H 1000 V 1330" />
+          <path d="M 1050 1245 H 1250 V 1330" />
+
+          <!-- Holly Hoopes + John Kiwala marriage -->
+          <path class="spouse" d="M 1340 1373 H 1510" />
+
+          <!-- Holly and John Kiwala to children -->
+          <path d="M 1425 1373 V 1540" />
+          <path d="M 1425 1540 H 1100 V 1610" />
+          <path d="M 1425 1540 H 1350 V 1610" />
+          <path d="M 1425 1540 H 1600 V 1610" />
+
+          <!-- Clay to children -->
+          <path d="M 1100 1696 V 1830" />
+          <path d="M 1100 1830 H 975 V 1890" />
+          <path d="M 1100 1830 H 1225 V 1890" />
+        </svg>
+
+        <!-- Level 1 / Featured patriarch -->
+        <div id="wh-hoopes" class="featured-person">
+          <img src="img/wh-hoopes.jpg" alt="W.H. Hoopes">
+          <span class="name">W.H. Hoopes</span>
+          <span class="dates">18 November 1840&ndash;17 April 1901</span>
+          <p class="blurb">
+            Hoopes came to Muscatine in 1854 and became the most prominent produce grower and seller of Muscatine Island. Hoopes helped start the Heinz plant in Muscatine and acquired 2,500 acres of land on the island.
+          </p>
+        </div>
+
+        <!-- Level 2 -->
+        <div class="person" style="left: 760px; top: 520px;">
+          <span>
+            <span class="name">Lindley Hoopes</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <!-- Level 3 -->
+        <div class="person" style="left: 760px; top: 790px;">
+          <span>
+            <span class="name">Fred Hoopes</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <!-- Level 4 -->
+        <div class="person" style="left: 760px; top: 1060px;">
+          <span>
+            <span class="name">John Hoopes</span>
+            <span class="dates">1934&ndash;2018 </span>
+          </span>
+        </div>
+
+        <div class="person branch" style="left: 1160px; top: 1060px;">
+          <span>
+            <span class="name">Mary Beth (Bankhead) Hoopes</span>
+            <span class="dates">1940&ndash;</span>
+          </span>
+        </div>
+
+        <!-- Level 5 -->
+        <div class="person not-main-person" style="left: 410px; top: 1330px;">
+          <span>
+            <span class="name">Tim Hoopes</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <div class="person not-main-person" style="left: 660px; top: 1330px;">
+          <span>
+            <span class="name">Sandra Hoopes</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <div class="person not-main-person" style="left: 910px; top: 1330px;">
+          <span>
+            <span class="name">Bob Hoopes</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <div class="person" style="left: 1160px; top: 1330px;">
+          <span>
+            <span class="name">Holly Hoopes</span>
+            <span class="dates">1960&ndash;</span>
+          </span>
+          <p class="blurb">
+            Grew up in the farming family, but started in a career as a mortician.
+          </p>
+        </div>
+
+        <div class="person branch" style="left: 1510px; top: 1330px;">
+          <span>
+            <span class="name">John Kiwala</span>
+            <span class="dates">Dates here</span>
+          </span>
+          <p class="blurb">worked for and with John Hoopes. Now, the horticultural archaeologist of Muscatine, IA.</p>
+        </div>
+
+        <!-- Level 6 -->
+        <div class="person branch" style="left: 1010px; top: 1610px;">
+          <span>
+            <span class="name">Clay Kiwala</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <div class="person branch" style="left: 1260px; top: 1610px;">
+          <span>
+            <span class="name">Jackson Kiwala</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <div class="person branch" style="left: 1510px; top: 1610px;">
+          <span>
+            <span class="name">Charlie Kiwala</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <!-- Level 7 -->
+        <div class="person branch" style="left: 885px; top: 1890px;">
+          <span>
+            <span class="name">Elli Kiwala</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+        <div class="person branch" style="left: 1135px; top: 1890px;">
+          <span>
+            <span class="name">Milli Kiwala</span>
+            <span class="dates">Dates here</span>
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- <div class="instructions">
+      Drag to pan. Scroll or pinch to zoom. Dashed lines show marriages; solid lines show parent-child relationships.
+    </div> -->
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.6.0/dist/panzoom.min.js"></script>
+
+  <script>
+   const viewport = document.querySelector(".tree-viewport");
+const tree = document.querySelector("#family-tree");
+
+const START_SCALE = 1.15;
+
+/*
+  Manual starting point.
+
+  These are coordinates inside the 1700px × 2150px family-tree canvas.
+
+  W.H. Hoopes card:
+  left: 710px
+  top: 80px
+  width: 280px
+
+  So the visual center of that card is roughly:
+  x = 710 + 140 = 850
+  y = 80 + 150 = 230
+
+  Adjust these numbers manually until the start view is right.
+*/
+const START_FOCUS_X = 690;
+const START_FOCUS_Y = -40;
+
+/*
+  Where that focus point should appear in the browser window.
+
+  0.5 means horizontal center.
+  0.28 means a little above vertical center.
+*/
+const SCREEN_FOCUS_X = 0.5;
+const SCREEN_FOCUS_Y = 0.28;
+
+const panzoom = Panzoom(tree, {
+  maxScale: 2.6,
+  minScale: 0.28,
+  canvas: true
+});
+
+function focusOnPoint(scale = START_SCALE, animate = false) {
+  const viewportWidth = viewport.clientWidth;
+  const viewportHeight = viewport.clientHeight;
+
+  const screenX = viewportWidth * SCREEN_FOCUS_X;
+  const screenY = viewportHeight * SCREEN_FOCUS_Y;
+
+  const panX = screenX - START_FOCUS_X * scale;
+  const panY = screenY - START_FOCUS_Y * scale;
+
+  panzoom.zoom(scale, { animate });
+  panzoom.pan(panX, panY, { animate });
+}
+
+viewport.addEventListener("wheel", panzoom.zoomWithWheel);
+
+document.querySelector("#zoomIn").addEventListener("click", () => {
+  panzoom.zoomIn();
+});
+
+document.querySelector("#zoomOut").addEventListener("click", () => {
+  panzoom.zoomOut();
+});
+
+document.querySelector("#resetView").addEventListener("click", () => {
+  focusOnPoint(START_SCALE, true);
+});
+
+window.addEventListener("resize", () => {
+  focusOnPoint(START_SCALE, false);
+});
+
+/*
+  Important: wait until layout is complete before setting the initial view.
+*/
+window.addEventListener("load", () => {
+  requestAnimationFrame(() => {
+    focusOnPoint(START_SCALE, false);
+  });
+});
+  </script>
+</body>
+</html>
