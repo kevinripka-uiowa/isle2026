@@ -13,7 +13,7 @@
       --bg: #fffef3;
       --panel: rgba(255, 254, 243, 0.94);
       --text: #01205C;
-      --muted: #666;
+      --muted: #01205C;
       --border: #d8d1b8;
 
       --cutting: #7a3b2e;
@@ -25,7 +25,7 @@
     body {
       height: 100%;
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family:"kopious", Georgia, 'Times New Roman', Times, serif;
       color: var(--text);
       background: var(--bg);
     }
@@ -330,6 +330,7 @@
     let decades = [];
     let currentStep = 0;
     let markers = [];
+    let factoriesBounds = null;
     let autoplayTimer = null;
     let isPlaying = true;
 
@@ -341,10 +342,21 @@
       // Mapbox uses [longitude, latitude].
       center: [-91.04852, 41.426],
 
-      zoom: 10.5
+      zoom: 10.5,
+
+      // Lock the map itself. Marker clicks and popups still work.
+      interactive: false,
+      dragPan: false,
+      scrollZoom: false,
+      boxZoom: false,
+      dragRotate: false,
+      keyboard: false,
+      doubleClickZoom: false,
+      touchZoomRotate: false,
+      pitchWithRotate: false
     });
 
-    map.addControl(new mapboxgl.NavigationControl(), "top-right");
+    // No navigation control because the map should not be zoomable or pannable.
 
     function escapeHTML(value) {
       return String(value ?? "")
@@ -673,9 +685,16 @@
       }
     }
 
-    function fitMapToData() {
-      if (!factories.length) return;
+    function getResponsiveMapPadding() {
+      const width = window.innerWidth;
 
+      if (width <= 480) return 36;
+      if (width <= 760) return 52;
+
+      return 80;
+    }
+
+    function buildFactoryBounds() {
       const bounds = new mapboxgl.LngLatBounds();
 
       factories.forEach(factory => {
@@ -684,11 +703,25 @@
         bounds.extend([factory.lon, factory.lat]);
       });
 
-      map.fitBounds(bounds, {
-        padding: 80,
+      return bounds;
+    }
+
+    function fitMapToData(duration = 0) {
+      if (!factories.length) return;
+
+      factoriesBounds = buildFactoryBounds();
+
+      // Fit to the full set of factory coordinates, not just the active decade.
+      // This keeps every decade inside the same geographic frame.
+      map.fitBounds(factoriesBounds, {
+        padding: getResponsiveMapPadding(),
         maxZoom: 15,
-        duration: 900
+        duration
       });
+
+      // With interaction disabled this is mostly a safeguard, but it also
+      // protects the frame if interaction is re-enabled later.
+      map.setMaxBounds(factoriesBounds);
     }
 
     function updateStatus() {
@@ -702,10 +735,18 @@
         console.warn("Skipped rows:", skippedRows);
       }
 
-    //   statusEl.textContent = message;
+    //   if (statusEl) statusEl.textContent = message;
     }
 
     playBtn.addEventListener("click", toggleAutoplay);
+
+    window.addEventListener("resize", () => {
+      map.resize();
+
+      if (factories.length) {
+        fitMapToData(0);
+      }
+    });
 
     map.on("load", () => {
       Papa.parse(csvPath, {
@@ -721,8 +762,8 @@
           skippedRows = split.skipped;
 
           if (!factories.length) {
-            statusEl.textContent = "No valid rows found in the CSV.";
-            decadeLabel.textContent = "No data";
+            if (statusEl) statusEl.textContent = "No valid rows found in the CSV.";
+            if (decadeLabel) decadeLabel.textContent = "No data";
 
             console.warn("Skipped rows:", skippedRows);
 
@@ -732,7 +773,7 @@
           decades = getDecadesFromData(factories);
 
           buildStepper();
-          fitMapToData();
+          fitMapToData(0);
           renderMap();
           updateStatus();
           startAutoplay();
@@ -741,8 +782,8 @@
         error: error => {
           console.error(error);
 
-          statusEl.textContent = "Could not load CSV.";
-          decadeLabel.textContent = "Error";
+          if (statusEl) statusEl.textContent = "Could not load CSV.";
+          if (decadeLabel) decadeLabel.textContent = "Error";
         }
       });
     });
