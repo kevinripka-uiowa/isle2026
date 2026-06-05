@@ -30,16 +30,16 @@
               alt="Placeholder landscape"
               class="place-photo"
             >
-          </div>
 
-          <!-- SVG stamp -->
-          <div class="stamp-image-wrap">
-            <img
-              data-stamp-image
-              src="https://upload.wikimedia.org/wikipedia/commons/3/36/Red_star.svg"
-              alt="Passport stamp"
-              class="stamp-image"
-            >
+            <!-- SVG stamp: nested here so it always overlaps the photo -->
+            <div class="stamp-image-wrap">
+              <img
+                data-stamp-image
+                src="https://upload.wikimedia.org/wikipedia/commons/3/36/Red_star.svg"
+                alt="Passport stamp"
+                class="stamp-image"
+              >
+            </div>
           </div>
         </div>
 
@@ -50,22 +50,29 @@
 
           <dl class="trip-meta">
             <div>
-              <dt>Date</dt>
-              <dd data-trip-date>March 12, 2026</dd>
+              <dt>Length of Stay</dt>
+              <dd data-trip-length>10 days</dd>
+            </div>
+            <div>
+              <dt>Program</dt>
+              <dd data-trip-program>Study abroad seminar</dd>
             </div>
             <div>
               <dt>Purpose</dt>
               <dd data-trip-purpose>Community dialogue</dd>
             </div>
             <div>
-              <dt>Distance</dt>
-              <dd data-trip-distance>82 miles</dd>
+              <dt>Role</dt>
+              <dd data-trip-role>Faculty leader</dd>
             </div>
           </dl>
 
-          <p data-trip-description>
-            The character traveled to meet residents, listen to local concerns, and understand how diplomacy can begin through everyday conversations rather than formal institutions.
-          </p>
+          <section class="trip-memory" aria-labelledby="trip-memory-label">
+            <h3 id="trip-memory-label">Memory</h3>
+            <p data-trip-memory>
+              The character’s favorite memory was watching students connect a formal lesson to a spontaneous conversation in the city.
+            </p>
+          </section>
 
           <div class="passport-controls">
             <button type="button" data-prev-trip>Previous</button>
@@ -116,8 +123,9 @@
     border: 0;
     border-radius: 18px;
     background:
-      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.12), transparent 22%),
-      linear-gradient(135deg, #263b78, #101d44 70%);
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.13), transparent 22%),
+      radial-gradient(circle at 72% 78%, rgba(0,0,0,0.18), transparent 28%),
+      linear-gradient(135deg, #b20f0f 0%, #8D0808 48%, #5d0505 100%);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
     cursor: pointer;
     color: #f4d57a;
@@ -151,7 +159,7 @@
   }
 
   .passport-title {
-    font-size: clamp(2.6rem, 7vw, 4.3rem);
+    font-size: clamp(2.6rem, 3.5vw, 3.5rem);
     line-height: 1;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -252,7 +260,7 @@
     box-shadow: 0 10px 24px rgba(0,0,0,0.18);
     transform: rotate(-1.5deg);
     background: #e5d7b6;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .place-photo {
@@ -265,14 +273,15 @@
 
   .stamp-image-wrap {
     position: absolute;
-    left: clamp(26px, 7vw, 72px);
-    bottom: clamp(34px, 7vw, 72px);
+    left: -36px;
+    bottom: -118px;
     width: 170px;
     height: 170px;
     transform: rotate(-12deg);
     mix-blend-mode: multiply;
     opacity: 0.85;
     pointer-events: none;
+    z-index: 3;
   }
 
   .stamp-image {
@@ -283,25 +292,24 @@
   }
 
   .passport-page h2 {
-    margin: 0 0 24px;
-    max-width: 12ch;
-    font-size: clamp(2rem, 4vw, 3.4rem);
+    margin: 0 0 20px;
+    font-size: clamp(2rem, 3vw, 3.4rem);
     line-height: 0.96;
     letter-spacing: -0.035em;
   }
 
   .trip-meta {
     display: grid;
-    gap: 14px;
-    margin: 0 0 24px;
+    gap: 12px;
+    margin: 0 0 22px;
     padding: 0;
   }
 
   .trip-meta div {
     display: grid;
-    grid-template-columns: 95px 1fr;
+    grid-template-columns: 130px 1fr;
     gap: 16px;
-    padding-bottom: 12px;
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(70, 50, 20, 0.18);
   }
 
@@ -317,6 +325,30 @@
     margin: 0;
     font-size: 1rem;
     line-height: 1.4;
+  }
+
+
+  .trip-memory {
+    max-height: clamp(120px, 18vw, 190px);
+    overflow-y: auto;
+    padding: 14px 16px 16px;
+    margin: 0 0 84px;
+    border: 1px solid rgba(70, 50, 20, 0.18);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  .trip-memory h3 {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(75, 55, 28, 0.66);
+  }
+
+  .trip-memory p {
+    margin: 0;
   }
 
   .passport-page p {
@@ -403,6 +435,15 @@
     }
   }
 
+  @keyframes turnPassportPageUp {
+    0% {
+      transform: rotateX(0deg);
+    }
+    100% {
+      transform: rotateX(180deg);
+    }
+  }
+
   @media (max-width: 760px) {
     .passport-book {
       min-height: auto;
@@ -420,35 +461,87 @@
     .passport-spread {
       grid-template-columns: 1fr;
       min-height: auto;
+      --mobile-seam-y: 50%;
+      --mobile-page-height: 520px;
     }
 
-    .passport-page-left,
-    .passport-page-right {
-      border-radius: 18px;
+    .passport-page-left {
+      border-radius: 18px 18px 0 0;
+      border-bottom-width: 0;
     }
 
     .passport-page-right {
       min-height: 520px;
+      border-radius: 0 0 18px 18px;
     }
 
     .passport-page-left::after,
-    .passport-page-right::before,
+    .passport-page-right::before {
+      left: 0;
+      right: 0;
+      width: auto;
+      height: 34px;
+      pointer-events: none;
+    }
+
+    .passport-page-left::after {
+      top: auto;
+      bottom: 0;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.12));
+    }
+
+    .passport-page-right::before {
+      top: 0;
+      bottom: auto;
+      background: linear-gradient(180deg, rgba(0,0,0,0.13), transparent);
+    }
+
     .turning-page {
-      display: none;
+      display: block;
+      top: var(--mobile-seam-y);
+      bottom: auto;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: var(--mobile-page-height);
+      transform-origin: center top;
+    }
+
+    .turning-page-front,
+    .turning-page-back {
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.1), transparent 16%),
+        #fff4d5;
+    }
+
+    .turning-page-back {
+      transform: rotateX(180deg);
+      background:
+        linear-gradient(180deg, transparent, rgba(0,0,0,0.12)),
+        #fff7df;
+    }
+
+    .passport-book.is-turning .turning-page {
+      animation: turnPassportPageUp 0.65s cubic-bezier(.2,.75,.2,1);
     }
 
     .stamp-image-wrap {
-      position: relative;
-      left: auto;
-      bottom: auto;
-      margin: -56px 0 20px auto;
-      width: 140px;
-      height: 140px;
+      position: absolute;
+      left: -20px;
+      bottom: -34px;
+      width: 130px;
+      height: 130px;
+      margin: 0;
     }
 
     .passport-controls {
       position: static;
       margin-top: 32px;
+    }
+
+    .trip-memory {
+      max-height: 220px;
+      margin-bottom: 32px;
     }
 
     .trip-meta div {
@@ -471,42 +564,61 @@
     const image = passport.querySelector("[data-place-image]");
     const stampImage = passport.querySelector("[data-stamp-image]");
     const title = passport.querySelector("[data-trip-title]");
-    const date = passport.querySelector("[data-trip-date]");
+    const length = passport.querySelector("[data-trip-length]");
+    const program = passport.querySelector("[data-trip-program]");
     const purpose = passport.querySelector("[data-trip-purpose]");
-    const distance = passport.querySelector("[data-trip-distance]");
-    const description = passport.querySelector("[data-trip-description]");
+    const role = passport.querySelector("[data-trip-role]");
+    const memory = passport.querySelector("[data-trip-memory]");
     const pageCount = passport.querySelector("[data-page-count]");
+    const spread = passport.querySelector(".passport-spread");
+    const leftPage = passport.querySelector(".passport-page-left");
+    const rightPage = passport.querySelector(".passport-page-right");
+
+    function updateMobileTurnOverlay() {
+      if (!spread || !leftPage || !rightPage) return;
+
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        spread.style.setProperty("--mobile-seam-y", leftPage.offsetHeight + "px");
+        spread.style.setProperty("--mobile-page-height", rightPage.offsetHeight + "px");
+      } else {
+        spread.style.removeProperty("--mobile-seam-y");
+        spread.style.removeProperty("--mobile-page-height");
+      }
+    }
 
     const trips = [
       {
-        title: "Taking Students to Beijing",
-        date: "March 12, 2026",
-        purpose: "Community dialogue",
-        distance: "82 miles",
+        title: "Summer 2024",
+        length: "10 days",
+        program: "Study abroad seminar",
+        purpose: "Cultural exchange and classroom field learning",
+        role: "Faculty leader",
         stampSvg: "images/beijing.svg",
         image: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Peking_F%C3%BCnf_Drachen_Pavillons-20131229-RM-120744.jpg",
         alt: "Landscape view",
-        description: "The character traveled to meet residents, listen to local concerns, and understand how diplomacy can begin through everyday conversations rather than formal institutions."
+        memory: "My favorite memory was watching students realize that the most important lesson of the trip came from an ordinary conversation, not from a scheduled site visit."
       },
       {
         title: "Market Square Meeting",
-        date: "April 18, 2026",
-        purpose: "Cultural exchange",
-        distance: "341 miles",
-        stampSvg: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Bitmap_VS_SVG.svg",
+        length: "4 days",
+        program: "Community diplomacy visit",
+        purpose: "Meet residents and observe everyday civic exchange",
+        role: "Observer and discussion facilitator",
+        stampSvg: "images/beijing.svg",
         image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=900&q=80",
         alt: "City street scene",
-        description: "At a public market, the character observed how food, language, trade, and daily routine create informal networks of trust between communities."
+        memory: "My favorite memory was hearing the market grow louder through the morning as food, language, trade, and routine created a kind of diplomacy that felt informal but deeply important."
       },
       {
         title: "University Forum",
-        date: "August 24, 2026",
-        purpose: "Public discussion",
-        distance: "64 miles",
-        stampSvg: "https://upload.wikimedia.org/wikipedia/commons/0/02/SVG_logo.svg",
+        length: "2 days",
+        program: "Public scholarship forum",
+        purpose: "Share findings and invite questions from students and faculty",
+        role: "Presenter",
+        stampSvg: "images/beijing.svg",
         image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=900&q=80",
         alt: "University building",
-        description: "At the forum, the character presented findings and faced questions about whether symbolic exchange can produce material change."
+        memory: "My favorite memory was the moment a student asked a difficult question that changed the direction of the whole conversation and made the forum feel less like a presentation and more like a shared inquiry."
       }
     ];
 
@@ -520,11 +632,19 @@
       image.alt = trip.alt;
       stampImage.src = trip.stampSvg;
       title.textContent = trip.title;
-      date.textContent = trip.date;
+      length.textContent = trip.length;
+      program.textContent = trip.program;
       purpose.textContent = trip.purpose;
-      distance.textContent = trip.distance;
-      description.textContent = trip.description;
+      role.textContent = trip.role;
+      memory.textContent = trip.memory;
       pageCount.textContent = `${index + 1} / ${trips.length}`;
+
+      // Hide edge navigation instead of wrapping back around.
+      prevButton.hidden = index === 0;
+      nextButton.hidden = index === trips.length - 1;
+
+      updateMobileTurnOverlay();
+      image.addEventListener("load", updateMobileTurnOverlay, { once: true });
     }
 
     function turnTo(index) {
@@ -546,16 +666,21 @@
 
     openButton.addEventListener("click", function () {
       book.classList.add("is-open");
+      window.setTimeout(updateMobileTurnOverlay, 0);
     });
 
+    window.addEventListener("resize", updateMobileTurnOverlay);
+
     nextButton.addEventListener("click", function () {
-      const nextIndex = (currentIndex + 1) % trips.length;
-      turnTo(nextIndex);
+      if (currentIndex < trips.length - 1) {
+        turnTo(currentIndex + 1);
+      }
     });
 
     prevButton.addEventListener("click", function () {
-      const prevIndex = (currentIndex - 1 + trips.length) % trips.length;
-      turnTo(prevIndex);
+      if (currentIndex > 0) {
+        turnTo(currentIndex - 1);
+      }
     });
 
     renderTrip(currentIndex);
