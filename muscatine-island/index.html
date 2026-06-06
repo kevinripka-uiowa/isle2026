@@ -155,9 +155,23 @@
     .story-button:hover { background: var(--accent-dark); }
 
 
+    .annotation-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 19;
+      background: rgba(0, 0, 0, 0.28);
+    }
+
+    .annotation-overlay.hidden {
+      display: none;
+    }
+
     .story-annotation {
       position: absolute;
       z-index: 20;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: min(330px, calc(100vw - 24px));
       max-height: calc(100% - 24px);
       background: var(--paper);
@@ -265,7 +279,9 @@
     <main class="map-frame">
       <div id="map" aria-label="Map of Muscatine, Iowa with annotated story points"></div>
 
-      <section id="story-annotation" class="story-annotation hidden" aria-live="polite">
+      <div id="annotation-overlay" class="annotation-overlay hidden" aria-hidden="true"></div>
+
+      <section id="story-annotation" class="story-annotation hidden" aria-live="polite" role="dialog" aria-modal="true">
         <button id="close-annotation" class="annotation-close" type="button" aria-label="Close annotation">×</button>
         <div id="annotation-content"></div>
       </section>
@@ -403,13 +419,13 @@
 
       resizeTimer = setTimeout(() => {
         fitMapToMuscatine(0);
-        requestAnimationFrame(positionAnnotation);
       }, 150);
     });
 
     let activeAnnotationPoint = null;
 
     const storyAnnotation = document.querySelector("#story-annotation");
+    const annotationOverlay = document.querySelector("#annotation-overlay");
     const annotationContent = document.querySelector("#annotation-content");
     const closeAnnotationButton = document.querySelector("#close-annotation");
 
@@ -417,14 +433,14 @@
       closeAnnotation();
     });
 
+    annotationOverlay.addEventListener("click", () => {
+      closeAnnotation();
+    });
+
     window.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         closeAnnotation();
       }
-    });
-
-    map.on("move", () => {
-      positionAnnotation();
     });
 
     function addStoryMarkers() {
@@ -464,75 +480,15 @@
         </article>
       `;
 
+      annotationOverlay.classList.remove("hidden");
       storyAnnotation.classList.remove("hidden");
-
-      const annotationImage = annotationContent.querySelector("img");
-      annotationImage.addEventListener("load", positionAnnotation, { once: true });
-
-      positionAnnotation();
       closeAnnotationButton.focus({ preventScroll: true });
     }
 
     function closeAnnotation() {
       activeAnnotationPoint = null;
+      annotationOverlay.classList.add("hidden");
       storyAnnotation.classList.add("hidden");
-    }
-
-    function positionAnnotation() {
-      if (!activeAnnotationPoint || storyAnnotation.classList.contains("hidden")) return;
-
-      const mapFrame = document.querySelector(".map-frame");
-      const markerScreenPosition = map.project(activeAnnotationPoint.coordinates);
-
-      const gap = 18;
-      const edgePadding = 12;
-      const panelWidth = storyAnnotation.offsetWidth;
-      const panelHeight = storyAnnotation.offsetHeight;
-      const frameWidth = mapFrame.clientWidth;
-      const frameHeight = mapFrame.clientHeight;
-
-      let preferredAnchor = activeAnnotationPoint.popupAnchor || getPopupAnchor(activeAnnotationPoint.coordinates);
-      let left;
-
-      // "left" means the popup's left edge attaches near the marker,
-      // so the popup opens to the right of the marker.
-      if (preferredAnchor === "left") {
-        left = markerScreenPosition.x + gap;
-
-        if (left + panelWidth > frameWidth - edgePadding) {
-          left = markerScreenPosition.x - panelWidth - gap;
-        }
-      } else {
-        left = markerScreenPosition.x - panelWidth - gap;
-
-        if (left < edgePadding) {
-          left = markerScreenPosition.x + gap;
-        }
-      }
-
-      let top = markerScreenPosition.y - panelHeight / 2;
-
-      // Keep the annotation fully inside the iframe or browser viewport.
-      left = clamp(left, edgePadding, frameWidth - panelWidth - edgePadding);
-      top = clamp(top, edgePadding, frameHeight - panelHeight - edgePadding);
-
-      storyAnnotation.style.left = `${left}px`;
-      storyAnnotation.style.top = `${top}px`;
-    }
-
-    function clamp(value, min, max) {
-      if (max < min) return min;
-      return Math.min(Math.max(value, min), max);
-    }
-
-    function getPopupAnchor(coordinates) {
-      // Mapbox anchors describe the side of the popup attached to the marker.
-      // "left" means the popup opens to the right of the marker.
-      // "right" means the popup opens to the left of the marker.
-      const markerLongitude = coordinates[0];
-      const mapCenterLongitude = MUSCATINE_CENTER[0];
-
-      return markerLongitude < mapCenterLongitude ? "left" : "right";
     }
 
     function escapeHTML(value) {
